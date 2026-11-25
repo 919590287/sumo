@@ -1,0 +1,11 @@
+eclipse-sumo
+geopandas
+matplotlib
+numpy
+ortools
+pandas
+pyogrio
+pyproj
+scipy
+shapely>=2
+sumolib

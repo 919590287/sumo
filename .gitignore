@@ -1,0 +1,16 @@
+# 默认忽略所有文件，仅发布下列项目源码和根目录说明。
+*
+!/.gitignore
+!/README.md
+!/requirements.txt
+!/lanegen/
+!/lanegen/*.py
+!/fitgen/
+!/fitgen/*.py
+!/tests/
+!/tests/*.py
+!/tools/
+!/tools/*.py
+
+# macOS 在移动磁盘上会为源码生成同名元数据文件。
+._*
