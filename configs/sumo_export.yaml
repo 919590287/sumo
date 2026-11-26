@@ -1,0 +1,62 @@
+# G → SUMO plain XML 的确定性转写配置（docs/DESIGN.md §4.3）
+# 均为编译器语法接口与默认属性，不含任何几何/拓扑裁决。
+
+projection:
+  proj_parameter: "+proj=utm +zone=49 +datum=WGS84 +units=m +no_defs"
+
+node_type_map:
+  junction_core: priority
+  split_merge: priority
+  midblock_node: priority
+  road_continuation: priority
+  roi_entry_port: dead_end
+  roi_exit_port: dead_end
+port_fringe: outer
+
+edge_defaults:
+  speed: 13.89        # 50 km/h，全库导航限速为空，统一城市默认值
+  priority: 1
+  spread_type: right
+
+# lane_change_flags == 0 时写出的禁变道属性（SUMO 1.28.0 实测："none"/"" 报错，"ignoring" 会被剥离）
+lane_change_forbidden: authority
+
+permission:
+  general:    {disallow: pedestrian}
+  bus_only:   {allow: bus}
+  variable:   {disallow: pedestrian, lane_class: variable}
+  reversible: {disallow: pedestrian, lane_class: reversible}
+
+aux_sidewalk:          # 被人行横道跨越的 edge 外侧辅助人行道（index 0）
+  width: 1.5
+aux_anchor_edge:       # 单向/岛侧辅助行人锚点边
+  width: 1.5
+  length: 3.0
+  spread_type: center
+aux_param_key: aux_crossing_anchor
+
+id_prefix:
+  node: "n"
+  edge: "e"
+  aux_node: "aux_n"
+  aux_edge: "aux_e"
+
+netconvert_args:       # 交付编译保真参数
+  - "--no-turnarounds=true"
+  - "--junctions.join=false"
+  - "--geometry.remove=false"
+  - "--offset.disable-normalization=true"
+  - "--plain.extend-edge-shape=false"
+  - "--junctions.corner-detail=0"
+
+# 测试台副本：仅对 junction_core 生成防死锁测试台配时（--tls.set=<ids>）
+eval_tls_node_types: [junction_core]
+# M0 实测：默认 opposites 布局的许可左转在中等冲突流下即使使用 netconvert 自带内部几何也会产生
+# 路口内碰撞（测试台噪声），改用逐进口放行 + 全红清空，使 collisions 只反映模型自身的同进口
+# 拓扑/几何缺陷（如同进口转向交叉），符合“确定性、低噪声”测试台要求。
+eval_tls_args:
+  - "--tls.layout=incoming"
+
+roundtrip:
+  hausdorff_tol_m: 0.15      # M0 基准门禁（M1–M3 为 0.20）
+  densify_step_m: 0.05

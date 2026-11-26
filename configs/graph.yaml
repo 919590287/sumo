@@ -1,0 +1,15 @@
+# 标准化有向车道图 G 的表征契约（docs/DESIGN.md §4.1）
+k_lane: 32          # 路段车道等弧长中心线控制点数（31 个间隔）
+k_conn: 8           # 成对连接轨迹控制点数（首尾锁定 + 6 个自由点）
+poly_k: 32          # junction_core 闭合轮廓点数（M0 实测：须精确经过全部接入横断面角点，6 岔带中分需 24 角点 > 16）
+p_max: 64           # 单窗节点上限
+n_max: 128          # 单窗路段车道上限
+m_max: 24           # 单窗人行横道上限
+conn_max: 256       # 单窗成对连接上限
+port_embed_dim: 256 # 端口匹配嵌入维度 D
+coord_dim: 3        # (x, y, z)；Phase 1 z ≡ 0，Phase 2 启用显示层序
+
+node_types: [junction_core, split_merge, midblock_node, roi_entry_port, roi_exit_port, road_continuation]
+lane_roles: [approach, exit, mid_segment, slip_turn, uturn_bay]
+permissions: [general, bus_only, variable, reversible]
+turn_classes: [L, S, R, U, FL, FR]

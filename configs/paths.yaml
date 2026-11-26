@@ -1,0 +1,17 @@
+# 路径配置（只读数据源 + 本机 APFS 缓存 + SUMO 工具链）
+# 任一项都可用同名大写环境变量覆盖，例如 B2S_CACHE_DIR=/path python -B ...
+gpkg_city: "/Volumes/USB DISK/爬取百度路网/output/广州市/广州道路仿真要素_全市采集与立交分层_WGS84.gpkg"
+gpkg_dev: "/Volumes/USB DISK/爬取百度路网/output/广州市/开创大道_WGS84.gpkg"
+legacy_eval_dir: "/Volumes/USB DISK/百度路网转化_清理归档_20261125/data/评测"
+
+# 本机 APFS 高速缓存（大体量训练缓存 / 合成库 / checkpoint / 仿真临时目录，禁止放 exFAT 仓库）
+cache_dir: "~/cache/baidu2sumo"
+
+# SUMO 1.28.0 工具链目录（netconvert / sumo）
+sumo_bin: "~/.microsim-platform/venv/bin"
+
+# 仓库内轻量产物目录（已在 .gitignore 中忽略 runs/ outputs/）
+runs_dir: "runs"
+
+# 广州 11 区行政边界（爬取工程只读资产，用于切分清单的区块行政区归属）
+districts_geojson: "/Volumes/USB DISK/爬取百度路网/data/runs/guangzhou_20261114/districts_wgs84.geojson"

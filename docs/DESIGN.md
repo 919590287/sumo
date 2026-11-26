@@ -1,6 +1,6 @@
 # 百度路网转化（Baidu-to-SUMO）技术设计文档
 
-> **文档地位**：本文档（`docs/DESIGN.md`）为本仓库**唯一权威技术设计文档（Single Source of Truth）**。项目规范与红线见根目录 [AGENTS.md](../AGENTS.md)。任何架构演进必须原地更新本文档，严禁另建平行设计文档。
+> **文档地位**：本文档（`docs/DESIGN.md`）是本仓库**唯一权威技术设计文档（Single Source of Truth）**，全部技术方案、数据事实、参数、接口、命令、算力路线与环境细节均以本文档为准。根目录 [AGENTS.md](../AGENTS.md) 只规定原则与红线，不写具体操作和参数。技术方案调整只原地更新本文档，严禁另建平行设计文档。
 
 ---
 
@@ -20,6 +20,27 @@
 | **输出实体** | **标准化有向车道图 $G = (V, L, K_{\text{conn}}, C, E_{\text{adj}}, E_{\text{from}}, E_{\text{to}}, E_{\text{succ}}, E_{\text{cross}}, E_{\text{cross\_node}})$**：显式节点与路口轮廓 `V`、等宽有向车道段 `L`（含权限与变道标志）、成对内部连接轨迹 `K_conn`、人行横道 `C` 与完整拓扑/归属矩阵 | 节点与控制点扩展层序/三维坐标 `z` 及跨块端口连接边 |
 | **不建模对象** | **模型不预测信号灯与信号配时**（交付产物 `site.net.xml` 为无信号优先权几何+拓扑基础路网，不含模型预测的 `.tll.xml` / 相位方案；面向高饱和多岔仿真时需由下游交通控制/配时系统补充信号）。*注：评测侧既在交付版 `site.net.xml` 上执行无冲突稀疏单 OD 连通性核验，又在 RL 奖励与饱和冲突流评测的**临时仿真测试台副本 `eval_sim.net.xml`** 中仅对模型输出的 `junction_core` 节点启用 `netconvert --tls.set=<junction_core_ids>` 自动生成防死锁测试台配时，绝不替代交付网且绝不误给路段 `midblock_node` 建灯。* | 按需作为独立下游模块接入 |
 | **标注与评测策略** | **训练与验证全程 100% 零人工标注**（参数化合成预训练 + 真实广州物理自监督 + SUMO-in-the-Loop RL）；**评测侧**执行「客观指标 + 强制底图叠加视觉终审」，并预留独立只读的 **Eval-Only 人工核验审计集（20–40 口）** 接口，用于检测纯自参考指标无法暴露的车道数/转向系统性偏差（绝不参与训练与调参） | 保持训练与评测严格隔离 |
+
+
+### 1.3 数据资产与数据事实
+
+数据源一律只读，严禁修改原目录。
+
+| 用途 | 路径 | 说明 |
+| --- | --- | --- |
+| 广州全市主数据 | `/Volumes/USB DISK/爬取百度路网/output/广州市/广州道路仿真要素_全市采集与立交分层_WGS84.gpkg` | 55.54 GB，WGS84（EPSG:4326），覆盖 11 区。主表名沿用 `南沙道路要素`（4,153,856 条，含道路面、白/黄虚实标线、导向箭头、斑马线、导流区、安全岛、公交/可变/潮汐车道等）。配套图层：`斑马线白色条纹`、`隔离设施路径`、`信号灯点位`、`公交站点位`、`道路参考线`、`道路面_三维`、`道路面_三维网格`、`立交局部比较点`、`其他原生区域面`、`立交上下层关系` 等 |
+| 小范围快速联调样本 | `/Volumes/USB DISK/爬取百度路网/output/广州市/开创大道_WGS84.gpkg` | 48 MB，含 15 个核心空间图层。仅作开发冒烟与 `dev / val-dev`，**严禁进入 `test`** |
+| 11 区行政边界 | `/Volumes/USB DISK/爬取百度路网/data/runs/guangzhou_20261114/districts_wgs84.geojson` | 爬取工程资产，只读引用，用于空间切分的区块行政区归属（见 8.4 节） |
+| 历史评测坐标参考 | `/Volumes/USB DISK/百度路网转化_清理归档_20261125/data/评测/` | `校准集.json` 44 口、`留出集.json` 66 口，仅作地理采样 / 跨区抽样参考；其中 `truth.json` 为旧算法预填初稿，不可当作金标准 |
+
+**数据事实约束**（建模时必须按此处理）：
+- 全市数据未采集导航属性，`车道数` / `路段限速_kmh` 等导航字段普遍为空；
+- `道路参考线` 会漏路，不能作为车道骨架；
+- `Z` 为 App 相对显示层序，不是实测海拔高程；
+- GPKG 中只有南沙 / 番禺填有 `行政区名称`；
+- 箭头 `旋转角度` 为自正北顺时针方位角（见 3.2 节 M0 实测定型）。
+
+所有路径集中写在 `configs/paths.yaml`，可用环境变量覆盖；服务器训练包内的数据路径由打包脚本重写（见 6.2 节）。
 
 ---
 
@@ -87,6 +108,7 @@
 经对广州全市 4,153,856 条 `南沙道路要素`、`其他原生区域面`、`公交站点位` 及 `开创大道_WGS84.gpkg` 的实测核查：
 - 百度标线漆宽实测为 `0.116 m – 0.239 m`（白实线中位宽 `0.116–0.192 m`，白虚线 `0.180 m`，黄实线 `0.205–0.239 m`），在 `0.20 m/px` 下仅占 `0.58–1.20` 像素。**硬二值光栅化必然产生丢线与严重锯齿**；
 - 因此采用**选择性抗锯齿光栅化策略（兼顾亚像素保真与 CPU 吞吐）**：仅对窄线/窄漆面通道（白/黄标线、`∂road_surface`、`separation_structure_path`、`greenway_boundary`、`斑马线白色条纹`）执行 `4×4` 子像素超采样面积覆盖光栅化（或若 M0 基准测试接近 CPU 吞吐预算，切换至零超采样的**解析亚像素带宽线段覆盖率光栅化**作为高性能等价实现），其余宽面要素（`roi_mask`、`road_surface`、`channelization_area`、`traffic_island`、`crosswalk_area`、`parking_*`、`arrow_*`、`z_order_*`）直接采用快速 `1×` 精确光栅化；并附加全标线截断无符号距离场（Truncated UDF）与标线无向主轴场 `(cos 2φ, sin 2φ)`，使窄标线在 `0.20 m/px` 下保留完整的亚像素质心与朝向信息；
+- **M0 实测定型（2026-11-26，详见第 8 节）**：窄线通道定型为**解析精确面积覆盖率光栅化**（多边形边在整数网格线处切分为单元内子段，累加有向梯形面积后行内前缀和，零超采样、单多边形面积误差为浮点精度级；相对 `32×32` 超采样参考的平均误差为 `4×4` 方案的约 1/5）。`896²` 窗单样本 `0.12 s`（`4×4` 方案 `0.49 s`，超出 `0.25 s` 门槛），8 进程有效吞吐 `30 样本/s`（`4×4` 方案 `11.7 样本/s`），约为 GPU 喂食速率（`≈ 3 样本/s`）的 10 倍。同通道多边形重叠处按绕数相加后截断至 `[0, 1]`（重叠边缘像素为近似值）。主轴场由标线覆盖图的结构张量（平滑尺度 `σ = 2.5 px`，局部一致性 P5 `0.998`）在标线像素取值并沿最近标线像素传播、按 `1 − UDF` 衰减；箭头朝向由原数据 `旋转角度`（自正北顺时针方位角，M0 实测箭头头部最宽断面 100% 位于 `90° − rot` 方向前端）经逐要素 WGS84→UTM 投影换算，消除约 `1°` 子午线收敛角；
 - **源数据分类与非机动编码事实**：
   1. 广州全库 45 个 `分类代码` 中**无独立 `stop_line`（停止线）、`left_turn_waiting_area`（左转待转区）、`curb`（路缘）或 `yellow_double_solid` 类**——停止线与待转区以几何形态存在于 `white_solid_stroke` / `white_dashed_stroke` 中，双黄线为平行 `yellow_solid_stroke`，导流斜纹已完整记录于 `channelization_area`（中位宽 `0.46 m`），路缘可由合并后的 `road_surface` 外轮廓 `∂road_surface` 确定性提取；
   2. **非机动车道与公交港湾实测事实**：`其他原生区域面` 仅含 `render_reflection_surface` 与 `parking_background_surface`，**全库无独立的非机动车道面要素**。在 `开创大道_WGS84.gpkg` 实测中，全部 `17/17` 个 `bicycle_lane_symbol` 均与 `road_surface` 相交（与机动车道箭头、白虚线共享同一 `road_surface` 多边形），距 `separation_structure_path` 中位仅 `0.23 m`、距实线标线中位仅 `0.77 m`；`公交站点位` 亦直接落于 `road_surface` 边界内（中位距离 `0.00 m`）。因此非机动车道与港湾式公交站的识别与剔除必须纳入 Layer 1 合成负样本与 Layer 2 防退化覆盖设计（见第 5 节）。
@@ -134,7 +156,7 @@ $$G = (V, L, K_{\text{conn}}, C, E_{\text{adj}}, E_{\text{from}}, E_{\text{to}},
 1. **显式节点实体集合 `V = {v_1, ..., v_P}`**（单窗上限 **`P_max = 64`**；全部节点均严格对应底图上视觉可观测的拓扑或属性事件，取消一切依赖裁切框起点的固定弧长伪切分节点）：
    - `pos ∈ R^2`（Phase 2 扩展为 `R^3`）：节点米制坐标 `(x, y)`；
    - `node_type ∈ {junction_core, split_merge, midblock_node, roi_entry_port, roi_exit_port, road_continuation}`：节点语义类型（对应 SUMO `<node>` 及 Phase 1/3 边界端口；其中 `midblock_node` 专用于路段中间掉头开口及非路口核心区人行横道，`road_continuation` 仅用于底图可见的专用道起止或实虚禁变道属性切换断面）；
-   - `polygon ∈ R^{16×2}`：显式路口闭合轮廓多边形（对 `junction_core` 激活并施加轮廓-接入车道端点一致性监督，直接映射 `<node shape="..."/>`；`split_merge` / `midblock_node` / `road_continuation` 在序列化阶段由其接入车道的精确外轮廓端点确定性构造闭合 `<node shape="..."/>`，防止 `netconvert` 裁切或拉伸车道端点）；
+   - `polygon ∈ R^{32×2}`：显式路口闭合轮廓多边形（对 `junction_core` 激活并施加轮廓-接入车道端点一致性监督，直接映射 `<node shape="..."/>`。**M0 实测修订（16 → 32 点）**：SUMO 1.28.0 会把落在节点 `shape` 内部的车道端点裁切至边界、把外侧端点延长至边界，因此轮廓必须**精确经过全部接入 edge 端点横断面角点**；6 岔带中央分隔路口需 24 个角点，16 点无法容纳，角点不足 32 时在最长边上插入共线点补齐；`split_merge` / `midblock_node` / `road_continuation` 在序列化阶段由其接入车道的精确外轮廓端点确定性构造闭合 `<node shape="..."/>`，防止 `netconvert` 裁切或拉伸车道端点）；
    - `port_embed ∈ R^D`：端口匹配特征嵌入（仅对 `roi_entry_port` / `roi_exit_port` 在超大选区跨块拼接时使用，与 3.1 节完全对齐）；
    - `score ∈ [0, 1]`：存在置信度。
 2. **有向机动车道段实体集合 `L = {l_1, ..., l_N}`**（**仅含非路口内部、非渐变过渡区的恒宽路段车道段**，单窗上限 **`N_max = 128`**）：
@@ -177,7 +199,7 @@ $$G = (V, L, K_{\text{conn}}, C, E_{\text{adj}}, E_{\text{from}}, E_{\text{to}},
    - 将最终节点特征 `H_V`、车道特征 `H_L`（拼接起终点坐标/切向/标量宽）与斑马线特征 `H_C` 送入 2 层异构图注意力层，由双线性/MLP 边头并行输出 `E_adj`、`E_from`、`E_to`、`E_succ`、`E_cross`、`E_cross_node` 的概率矩阵；
    - **成对连接轨迹解码头（Pairwise Connection Trajectory Decoder）**：对训练期真值正对 / 推理期 `E_succ` 激活的合法有向对 `(l_i, l_j)`，拼接 `(h_i, h_j, end_i, tangent_end_i, start_j, tangent_start_j)`，在起终点连线初始插值上执行 2 层多尺度 Deformable Cross-Attention，回归中间 6 个内部控制点偏移，输出 `K_conn` 的 8 点精确内部轨迹。
 5. **阶段 E — 结构化约束图解码器（Constrained Maximum-Weight Graph Decoder）**：
-   神经网络输出的概率矩阵直接阈值化可能产生分叉、成环、节点不一致或局部死胡同，因此推理末端通过**确定性图论组合优化**（纯数学约束优化，属于 `AGENTS.md` 3.3 节允许的图论约束解码，零几何启发式阈值）将概率矩阵解码为 100% 拓扑合法的离散有向车道图：
+   神经网络输出的概率矩阵直接阈值化可能产生分叉、成环、节点不一致或局部死胡同，因此推理末端通过**确定性图论组合优化**（纯数学约束优化，属于 `AGENTS.md` 第 3 节第 6 条允许的图论约束解码，零几何启发式阈值）将概率矩阵解码为 100% 拓扑合法的离散有向车道图：
    - **`E_adj` 编组解码**：对置信度通过筛选的有效车道段 `L_act`，以对数似然比 $\log \frac{E_{\text{adj}}[i,j]}{1 - E_{\text{adj}}[i,j]} - \tau_{\text{adj}}$ 为边权，求解**无环最大权有向路径覆盖**（约束每条车道出度 `≤ 1`、入度 `≤ 1`、无环，等价于带破环约束的最大权二分匹配 / 小型 ILP，`N ≤ 128` 毫秒级精确求解）。每条极大有向链确定性编组为一个 SUMO `<edge>`，链序即为从最右侧向最左侧严格递增的机动车道顺序；
    - **联合 `(from, to)` 节点归属解码**：对每条编组出的 `<edge>` 集合 $S_e \subseteq L_{\text{act}}$，最大化组内联合节点对数似然 $\arg\max_{u \neq v} \sum_{i \in S_e} (\log E_{\text{from}}[i, u] + \log E_{\text{to}}[i, v])$，严格保证同一 `<edge>` 下所有并行车道共享唯一的 `(from_node, to_node)`；
    - **`E_succ` 连通与保序合法化解码**：以 $\log \frac{E_{\text{succ}}[i,j]}{1 - E_{\text{succ}}[i,j]} - \tau_{\text{succ}}$ 为边权，在满足以下三项纯组合约束的可行集上求解最大权连接子图（单节点变量极少，动态规划 / 小型 ILP 毫秒级精确求解）：
@@ -194,8 +216,8 @@ $$G = (V, L, K_{\text{conn}}, C, E_{\text{adj}}, E_{\text{from}}, E_{\text{to}},
 1. **1:1 语法转写表与实测修正契约**：
    - **`V → .nod.xml`（含显式节点类型映射与闭合轮廓）**：
      - 每个有效节点 `v_p` 写出 `<node id="v_p" x="..." y="..." type="..." shape="..."/>`；
-     - **`node_type → SUMO type` 确定性映射**（`configs/sumo_export.yaml`）：`junction_core` / `split_merge` / `midblock_node` / `road_continuation` 均映射为交付网的 `type="priority"`（SUMO 不接受自定义节点语义枚举名），`roi_entry_port` / `roi_exit_port` 映射为 `type="dead_end" fringe="outer"`；
-     - **全内部节点显式 `shape` 契约（解决 `netconvert` 端点裁切漂移）**：经 SUMO 1.28.0 实测，即使开启 `--plain.extend-edge-shape=false`，若节点未写 `shape` 或车道端点偏离节点 `shape` 边界，`netconvert` 仍会自动裁切或延长自定义 `<lane shape>` 端点至其重算的路口轮廓边界。因此：`junction_core` 写出模型预测的 `v_p.polygon`（训练期受轮廓-端点一致性损失约束）；`split_merge` / `midblock_node` / `road_continuation` 由序列化器直接从其接入车道的模型预测外轮廓端点按角序确定性装配闭合 `shape`（纯 I/O 几何装配，零裁决启发式，SUMO 1.28.0 端到端实测端点漂移为 `0.000 m`）；
+     - **`node_type → SUMO type` 确定性映射**（`configs/sumo_export.yaml`）：`junction_core` / `split_merge` / `midblock_node` / `road_continuation` 均映射为交付网的 `type="priority"`（SUMO 不接受自定义节点语义枚举名），`roi_entry_port` / `roi_exit_port` 映射为 `type="dead_end" fringe="outer"`，并同样写出由其接入 edge 端点横断面两角点构成的显式 `shape`（**M0 实测**：端口不写 `shape` 时 `netconvert` 按自算横断面裁切/延长弯道引道远端，车道 Hausdorff 漂移达 `1.2–1.4 m`；写出后为 `≤ 0.0075 m`，即 `net.xml` 0.01 m 取整误差）；
+     - **全内部节点显式 `shape` 契约（解决 `netconvert` 端点裁切漂移）**：经 SUMO 1.28.0 实测，即使开启 `--plain.extend-edge-shape=false`，若节点未写 `shape` 或车道端点偏离节点 `shape` 边界，`netconvert` 仍会自动裁切或延长自定义 `<lane shape>` 端点至其重算的路口轮廓边界。因此：`junction_core` 写出模型预测的 `v_p.polygon`（训练期受轮廓-端点一致性损失约束）；`split_merge` / `midblock_node` / `road_continuation` 由序列化器直接从其接入车道的模型预测外轮廓端点按角序确定性装配闭合 `shape`（纯 I/O 几何装配，零裁决启发式；被跨越 edge 的辅助人行道外缘角点一并计入，辅助锚点边**不**改动节点 `shape`；SUMO 1.28.0 端到端实测端点漂移 `≤ 0.0075 m`）；
      - 顶层写入 `<location netOffset="-X_0,-Y_0" projParameter="+proj=utm +zone=49 +datum=WGS84 +units=m +no_defs"/>`；
    - **`(E_adj 链, L) → .edg.xml`（含显式 `<edge shape>`、默认速度/优先级与实测禁变道语法）**：
      - 每条链写出 `<edge id="e_k" from="v_u" to="v_v" numLanes="..." speed="13.89" priority="1" spreadType="right" shape="..."/>`：
@@ -205,9 +227,9 @@ $$G = (V, L, K_{\text{conn}}, C, E_{\text{adj}}, E_{\text{from}}, E_{\text{to}},
      - **实线禁变道属性实测契约**：经 SUMO 1.28.0 实测确认，`changeLeft="none"` 与 `changeLeft=""` 会导致 `netconvert` 直接报硬错退出（`Unknown vehicle class 'none'`），而 `changeLeft="ignoring"` 虽可编译但会被 `netconvert` 视为无限制默认值静默剥离（仿真中民用车辆仍可自由压实线超车！）。因此 `lane_change_flags` 为 `0` 时统一写出 **`changeLeft="authority"` / `changeRight="authority"`**（已在 `netconvert + sumo 1.28.0` 实测编译保留且对所有民用机动车辆严格生效拦截变道）；
    - **人行横道、辅助人行道与岛侧行人锚点机制（经 SUMO 1.28.0 实测验证，覆盖单向渠化右转与二次过街）**：
      > 实测证实：(1) SUMO 1.28.0 中若被跨越的边不含行人通道，`netconvert` 会报警 `Invalid pedestrian topology: crossing has no target` 并静默丢弃 `<crossing>`；(2) 若启用 `--sidewalks.guess` 或 `sidewalkWidth`，`netconvert` 会隐式插入 `lane index="0"` 造成机动车道索引 `+1` 错位；(3) 在**单向渠化右转道**或**中央安全岛二次过街**场景中，仅在被跨越边右侧加 `index="0"` 仍会因岛侧缺少步行区落脚点而被静默丢弃，且在同一边左侧追加第二条行人道会被 `netconvert` 报 `Ignoring additional sidewalk lane` 忽略；(4) `<crossing ... shape="..."/>` 为 SUMO 1.28.0 有效自定义几何属性名（`customShape` 会被忽略）。
-     - **确定性处理（`AGENTS.md` 3.3 节允许的编译器语法接口例外）**：
+     - **确定性处理（`AGENTS.md` 第 3 节第 6 条允许的编译器语法接口例外）**：
        1. **边外侧辅助人行道**：凡被至少一条人行横道 `c_m ∈ C` 跨越的 `<edge>`，序列化器显式在其最外侧写入固定辅助人行道 `<lane index="0" width="1.5" allow="pedestrian" shape="..."><param key="aux_crossing_anchor" value="true"/></lane>`（由最外侧机动车道向右法向平移 `(w_0/2 + 0.75) m` 确定性生成），该边机动车道索引从 `1` 起严格递增，`.con.xml` 中的 `fromLane` / `toLane` 同步引用精确偏移后索引；
-       2. **岛侧辅助行人锚点边（支持单向渠化右转与二次过街）**：当某条人行横道 `c_m` 跨越单向边或分隔带单侧车行道、其对侧（安全岛/中央分隔带侧）在所属节点上不存在既有步行区落脚点时，序列化器在该节点朝岛侧方向确定性挂载一条短辅助纯行人锚点边（`allow="pedestrian"`, `numLanes="1"`, `width="1.5"`, `spreadType="center"`, 长度 `2–4 m`，末端锚点节点 `type="dead_end"`，边与锚点节点均标注 `<param key="aux_crossing_anchor" value="true"/>`），已在 SUMO 1.28.0 上实测单向渠化右转与路段双侧二次过街均实现零告警、保形编译；
+       2. **岛侧辅助行人锚点边（支持单向渠化右转与二次过街）**：当某条人行横道 `c_m` 跨越单向边或分隔带单侧车行道、其对侧（安全岛/中央分隔带侧）在所属节点上不存在既有步行区落脚点时，序列化器在该节点朝岛侧方向确定性挂载一条短辅助纯行人锚点边（`allow="pedestrian"`, `numLanes="1"`, `width="1.5"`, `spreadType="center"`, 长度 `3 m`，末端锚点节点 `type="dead_end"`，边与锚点节点均标注 `<param key="aux_crossing_anchor" value="true"/>`）。**岛侧方向的确定性定义（M0 定型）**：远端落脚点（距跨越 edge 最右车道右缘较远的斑马线端点）所在的节点角扇区（由相邻两条接入 edge 横断面中点方位划分）即岛侧；同一扇区内全部远端落脚点共用一条锚点边，起点为其均值、方向为扇区角平分线。M0 实测路口中央岛二次过街（8 段）、路段中段二次过街与单向渠化右转斑马线均零告警、零丢弃、保形编译；
        3. 全部带有 `aux_crossing_anchor` 标记的辅助车道、锚点边与锚点节点**仅作满足 `netconvert` 拓扑语法要求的编译锚点（不参与道路拓扑裁决），在底图叠加可视化渲染、机动车 OD 仿真与机动车道几何指标评测中一律隐藏/排除**；
    - **`(E_succ, K_conn) → .con.xml`（含显式禁自动补连）**：
      - 每条激活连接写入 `<connection from="..." to="..." fromLane="..." toLane="..." shape="..."/>`（使用 `K_conn` 的 8 点无压岛内部轨迹）；
@@ -229,11 +251,13 @@ $$G = (V, L, K_{\text{conn}}, C, E_{\text{adj}}, E_{\text{from}}, E_{\text{to}},
      *说明：`--junctions.join`、`--geometry.remove`、`--plain.extend-edge-shape` 在 SUMO 1.28.0 中默认即为 `false`，此处显式传入以锁定跨版本确定性；严禁开启 `--sidewalks.guess`、`--crossings.guess`、`--geometry.remove=true` 或 `--junctions.join=true`。*
    - **仿真测试台临时编译副本（仅用于 RL 奖励与饱和冲突流评测，输出临时 `eval_sim.net.xml`）**：
      - 经 SUMO 1.28.0 实测，`--tls.guess=true --tls.guess.threshold=0` 会错误地把带有斑马线的 `midblock_node` 也转为信号控制路口。因此临时测试台副本改用 **`--tls.set=<逗号分隔的全部 junction_core 节点 ID>`**，仅对模型显式预测的 `junction_core` 节点自动生成防死锁测试台信号配时（不触碰 `split_merge`、`midblock_node` 与 `road_continuation`），且绝不替代交付版 `site.net.xml`。
+     - **M0 实测修订：测试台配时布局 `--tls.layout=incoming`**（逐进口放行 + 黄灯/全红清空）。默认 `opposites` 布局含许可左转，在中等冲突流下即使去掉自定义内部轨迹、改用 `netconvert` 自带内部几何也会出现路口内碰撞（6 个标准图 × 3 种子中 `noshape` 组碰撞数与自定义几何组同量级），属于测试台噪声；`incoming` 布局使 `collisions` 只反映模型自身的同进口拓扑/几何缺陷（M0 中即据此暴露并修正了标准图夹具的同进口转向交叉），满足“确定性、低噪声”要求。
    - **强制编译后往返一致性核验（Post-Compile Round-Trip Verification，内置于 `src/sumo_io/`）**：
-     每次 `netconvert` 编译后必须自动解析生成的 `*.net.xml` 并与输入图 $G$ 执行三项刚性比对，**任一项不通过即判编译失败**：
+     每次 `netconvert` 编译后必须自动解析生成的 `*.net.xml` 并与输入图 $G$ 执行以下刚性比对，**任一项不通过即判编译失败**：
      1. **连接拓扑 100% 往返一致**：编译后非内部 `<connection>` 集合 `(from, to, fromLane, toLane)` 与 $G$ 的 `E_succ`（扣除辅助人行道索引偏移后）完全一致，凡出现 `netconvert` 自动补连或静默丢连一律判失败；
-     2. **死胡同与无源车道独立核查**：鉴于 SUMO 1.28.0 实测证实 `netconvert` 不会对死胡同进口车道输出任何告警，死胡同/无源车道与被丢弃斑马线数一律直接基于 $G$ 与解析后的 `net.xml` 精确统计，不以 `netconvert` 零告警替代拓扑校验；
-     3. **编译前后几何保真核查**：计算输入 $G$ 的路段车道中心线、`K_conn` 内部轨迹与编译后 `net.xml` 对应 `<lane shape>` / 内部车道 `<lane shape>` 的 Hausdorff 距离与端点漂移（M0 基准门禁 `≤ 0.15 m`，M1–M3 门禁 `≤ 0.20 m`）。
+     2. **告警分类**：`netconvert` 告警中仅 `Edge 'e' is not connected to outgoing edges`（e 在 $G$ 中全部车道为死胡同）与 `Lane 'x' is not connected from any incoming edge`（x 在 $G$ 中为无源车道）两类与 $G$ 显式声明的拓扑事实精确对应，单列为“拓扑事实提示”；其余一律计为意外告警，门禁要求为 0；
+     3. **死胡同与无源车道独立核查**：鉴于 SUMO 1.28.0 实测证实 `netconvert` 不会对死胡同进口车道输出任何告警，死胡同/无源车道与被丢弃斑马线数一律直接基于 $G$ 与解析后的 `net.xml` 精确统计，不以 `netconvert` 零告警替代拓扑校验；
+     4. **编译前后几何保真核查**：计算输入 $G$ 的路段车道中心线、`K_conn` 内部轨迹与编译后 `net.xml` 对应 `<lane shape>` / 内部车道 `<lane shape>` 的 Hausdorff 距离与端点漂移（M0 基准门禁 `≤ 0.15 m`，M1–M3 门禁 `≤ 0.20 m`）。
 
 ---
 
@@ -245,7 +269,7 @@ $$G = (V, L, K_{\text{conn}}, C, E_{\text{adj}}, E_{\text{from}}, E_{\text{to}},
 
 1. **规范化真值分段协议（Canonical Graph Ground-Truth Specification）**：
    为保证训练期 Hungarian 匹配目标唯一无歧义且全部节点均在底图上视觉可观测，合成引擎严格按统一协议生成真值图 $G^*$：
-   - **节点唯一放置规则（严格取消固定弧长伪切分）**：仅在以下 **5 类视觉可观测事件**处创建节点并拆分车道段：(a) ROI 边界交点（`roi_entry_port` / `roi_exit_port`）；(b) 交叉口核心区停止线断面（`junction_core`，`pos` 为接入停止线端点几何质心，`polygon` 为精确经过所有接入车道外横断面角点并包络内部连接的规范 16 点闭合轮廓）；(c) 车道数或宽窄变化渐变段（`split_merge`）：对展宽/缩减渐变段 `[s_start, s_end]`，**上游 `k` 条恒宽车道段统一在渐变起点 `s_start` 终止，下游 `k±1` 条恒宽车道段统一在渐变终点 `s_end` 起始**（即展宽新增车道严格从达到完整标称宽度的 `s_end` 断面起存在，缩减消失车道严格在开始收窄前的 `s_start` 断面终止）；渐变段内部不放置任何 `L` 路段车道，仅在渐变段几何质心创建**单个 `split_merge` 节点**，并由 `K_conn` 的 8 点平滑分合流过渡轨迹桥接覆盖 `[s_start, s_end]`，从而严格保证全部 `L` 均为标量恒宽、Hungarian 匹配真值唯一无歧义；(d) 车道属性变化断面（如公交/可变/潮汐专用道起止、实虚分隔线禁变道切换，创建 `road_continuation` 节点切分）；(e) 路段功能事件断面（`midblock_node`）：在**路段中间掉头开口**（广州常见提前掉头，切分双向车道并生成跨 `midblock_node` 的 `E_succ` 与 `K_conn` 掉头轨迹）以及**非路口核心区人行横道中心断面**（如渠化右转道斑马线、路段中段人行横道，切分所跨机动车道并将 `E_cross_node` 绑定至该 `midblock_node`）处创建 `midblock_node`。每条路段车道均以 **`K_lane = 32`** 个等弧长控制点表示，不再因固定弧长插入依赖裁切框起点的伪切分节点；
+   - **节点唯一放置规则（严格取消固定弧长伪切分）**：仅在以下 **5 类视觉可观测事件**处创建节点并拆分车道段：(a) ROI 边界交点（`roi_entry_port` / `roi_exit_port`）；(b) 交叉口核心区停止线断面（`junction_core`，`pos` 为接入停止线端点几何质心，`polygon` 为精确经过所有接入车道外横断面角点并包络内部连接的规范 32 点闭合轮廓）；(c) 车道数或宽窄变化渐变段（`split_merge`）：对展宽/缩减渐变段 `[s_start, s_end]`，**上游 `k` 条恒宽车道段统一在渐变起点 `s_start` 终止，下游 `k±1` 条恒宽车道段统一在渐变终点 `s_end` 起始**（即展宽新增车道严格从达到完整标称宽度的 `s_end` 断面起存在，缩减消失车道严格在开始收窄前的 `s_start` 断面终止）；渐变段内部不放置任何 `L` 路段车道，仅在渐变段几何质心创建**单个 `split_merge` 节点**，并由 `K_conn` 的 8 点平滑分合流过渡轨迹桥接覆盖 `[s_start, s_end]`，从而严格保证全部 `L` 均为标量恒宽、Hungarian 匹配真值唯一无歧义；(d) 车道属性变化断面（如公交/可变/潮汐专用道起止、实虚分隔线禁变道切换，创建 `road_continuation` 节点切分）；(e) 路段功能事件断面（`midblock_node`）：在**路段中间掉头开口**（广州常见提前掉头，切分双向车道并生成跨 `midblock_node` 的 `E_succ` 与 `K_conn` 掉头轨迹）以及**非路口核心区人行横道中心断面**（如渠化右转道斑马线、路段中段人行横道，切分所跨机动车道并将 `E_cross_node` 绑定至该 `midblock_node`）处创建 `midblock_node`。每条路段车道均以 **`K_lane = 32`** 个等弧长控制点表示，不再因固定弧长插入依赖裁切框起点的伪切分节点；
    - **独立运动学内部轨迹生成器（解决 `netconvert` 监督矛盾）**：合成真值的连接过渡轨迹 $K_{\text{conn}}^*$（含跨 `junction_core` 路口内转向、跨 `split_merge` 渐变段分合流过渡以及跨 `midblock_node` 路段掉头；左转待转区走廊几何同步吸收进对应左转 $K_{\text{conn}}^*$）**不采用 `netconvert` 默认生成的内部曲线**，而是由参数化运动学样条生成器（$C^2$ 连续五次埃尔米特 / 回旋样条，端点位置与切向严格锁定进出口断面，显式满足安全岛/导流区/斑马线避障间隙、最小转弯半径约束与多车道并列转弯保序间隔）直接生成黄金轨迹并写入 `.con.xml`，经 4.3 节 `netconvert` 保真编译与**往返一致性核验**（连接集合 100% 一致、几何 Hausdorff 漂移 `≤ 0.15 m`、零告警）。
 2. **场景多样性与显式负样本**：
    - **拓扑与几何多样性**：3–6 岔随机交角（`30°–150°`）、T 型/Y 型/十字/错位口/多岔口；直线与贝塞尔弯道引道；每臂独立随机进出口车道数（1–6 车道）与非对称配对布置；上游/进口展宽段与下游缩减段；中央双黄线/隔离带与框内掉头开口；转角安全岛 + 导流区 + 独立渠化右转道；人行横道（含中央安全岛二次过街与渠化右转道斑马线）；宽窄变异（`2.1 m–4.0 m`）；**专门合成广州高频场景：左转待转区（双白虚线 + 前端横白实线 + 内部左转箭头，输出端吸收进左转 `K_conn`）、路口内引导虚线、公交专用道、可变/潮汐车道**；
@@ -329,19 +353,93 @@ $$R(G) = w_1 R_{\text{align}} + w_2 R_{\text{no\_intrusion}} + w_3 R_{\text{reca
    - **方案 A2（在线精细探索）— 实体级局部优势结构化 GRPO**：在 DPO 收敛后的高合法率策略上，同样采用每轮 `500–1,000` 口难例抽样，将奖励分解为全局仿真项 + **按车道/连接归因的局部奖励**（如某条连接触发路口碰撞、压岛或未覆盖箭头时直接扣减对应 `(i, j)` 边优势 $A_k$），以因子化比率 $r_k(\theta)$ 与 KL 锚定执行结构化 GRPO 精修；
    - **方案 B（进阶可选叠层）— 独立 GNN 多步图精修智能体（PPO）**：仅当方案 A 在超复杂多岔口遇到明确长尾瓶颈时启用，以方案 A 输出为 $s_0$，在 `T = 5~8` 步内对争议边/节点执行多步局部精修。
 
-> **训练/损失/奖励超参数与技术红线边界声明**：本节及 4.3 节中涉及的各项物理、优化与编译器导出常数（如主干段实线门控区间 `[0.05, 0.95]`、反合并内部采样带宽 `±0.35w`、覆盖软核参数 `σ_cov` 与下限 `α_floor`、可微转向角核中心/带宽/精确率容忍权重、内部轨迹标准车体包络宽 `2.2 m`、物理最小转弯半径 `R_min = 6.0 m / 4.5 m`、安全间隙 `m_forbid / m_div`、RL 探索模糊置信带 `[0.2, 0.8]`、多对 DPO 奖励间隔阈值 `δ_R`，以及 SUMO 默认限速/优先级/节点枚举映射）均属于 `AGENTS.md` 3.3 节允许的**损失函数、RL 奖励、训练策略数学超参数与确定性 I/O 配置**，统一收口于 `configs/` 配置文件管理与消融实验，**绝不作为推理期硬编码几何/拓扑裁决规则**。
+> **训练/损失/奖励超参数与技术红线边界声明**：本节及 4.3 节中涉及的各项物理、优化与编译器导出常数（如主干段实线门控区间 `[0.05, 0.95]`、反合并内部采样带宽 `±0.35w`、覆盖软核参数 `σ_cov` 与下限 `α_floor`、可微转向角核中心/带宽/精确率容忍权重、内部轨迹标准车体包络宽 `2.2 m`、物理最小转弯半径 `R_min = 6.0 m / 4.5 m`、安全间隙 `m_forbid / m_div`、RL 探索模糊置信带 `[0.2, 0.8]`、多对 DPO 奖励间隔阈值 `δ_R`，以及 SUMO 默认限速/优先级/节点枚举映射）均属于 `AGENTS.md` 第 3 节第 6 条允许的**损失函数、RL 奖励、训练策略数学超参数与确定性 I/O 配置**，统一收口于 `configs/` 配置文件管理与消融实验，**绝不作为推理期硬编码几何/拓扑裁决规则**。
 
 ---
 
-## 6. 本机算力（Apple M4 Pro 24 GB）与工程落地方案
+## 6. 算力路线（Mac MPS + Linux NVIDIA 双路线）与工程落地方案
 
 | 资源/约束项 | 规格与落地设计 |
 | --- | --- |
-| **计算硬件** | Apple M4 Pro（12 核 CPU：8P+4E，24 GB 统一内存，PyTorch 2.8.0 MPS 加速） |
-| **模型体量与 MPS 算子适配** | 总参数量控制在 **25M–40M**（高保真轻 Stem + `ConvNeXt-Tiny`/`ResNet34` + `F_2(D_2=128)` + 轻量矢量编码器/6 层 MapTRv2 解耦层级解码器/GNN）；**解耦 Intra/Inter-Instance 注意力**将 `K_lane=32` 下的解码器自注意力开销压低 `>20×`，支撑 `1024×1024` 单窗推理与 `512–896` 训练；Deformable Cross-Attention 采用 **纯 MPS 原生 `gather` 可微双线性采样** 替代 PyTorch 2.8.0 MPS 尚不支持反向的 `grid_sample`，杜绝 CPU fallback；训练采用 `batch_size = 4~8` + 梯度累积，并在 M0 验证 MPS `fp16/bf16` AMP 数值稳定性 |
-| **性能实测门禁与时长预算** | **拒绝未经验证的吞吐臆测**：M0 阶段必须在本机实测三项基准：(1) **选择性抗锯齿光栅化（窄标线 `4×4` + 宽面 `1×`）vs 解析亚像素带宽线段覆盖率光栅化**的单图 CPU 耗时（若 `4×4` 方案单样本超 `0.25 s` 或 8 进程有效吞吐低于 GPU 喂食速率，立即切换至解析覆盖率方案，避免 125 万样本光栅化成为 40+ h 瓶颈）；(2) 单图前向/反向延迟与显存占用（含 `896×896` 训练与 `1024×1024` 推理）；(3) `6–8` 进程池并行执行 `netconvert + 往返核验 + sumo` 的实际路口/秒吞吐。初步训练时长预算（**须待 M0 实测吞吐后重新核算校准**）：Layer 1 合成预训练（3–5 万口，~20–30 epochs）约 `24–48 h`；Layer 2 真实物理自监督与渐进自训练约 `12–24 h`；Layer 3 采用每轮分层抽样 `500–1,000` 口 × `K = 16` 候选执行 `4–8` 轮多对偏好迭代 DPO（及可选 GRPO）约 `8–16 h` |
-| **统一 Python 环境** | 在**本机 APFS 磁盘**维护独立环境（如 `~/.venvs/baidu2sumo` 或 conda `baidu2sumo`），统一安装 PyTorch 2.8（MPS）+ GeoPandas/Shapely + OpenCV + SciPy + `sumolib`/`traci`，并调用 `~/.microsim-platform/venv/bin/{netconvert,sumo}`（SUMO 1.28.0）；**严禁在 exFAT 建 venv，严禁使用 `/opt/homebrew/bin/python3`**，运行 Python 默认加 `-B` |
-| **APFS 存储预算与 I/O 分离** | 原始 55.54 GB GPKG 严格只读；APFS 高速 SSD 缓存目录（如 `~/cache/baidu2sumo/`）总空间预算 **`~25–35 GB`**：合成轻量矢量与真值（5 万口 `< 1.5 GB`，在线光栅化）+ 真实广州切片与紧凑压缩 SDF 场（5 千口 `~12–15 GB`）+ 训练 checkpoints 与仿真日志（`~5–10 GB`）；exFAT 仓库内仅保存源码、配置、轻量化切分清单、指标报告与精选叠图 |
+| **计算硬件** | **本机（开发主线）**：Apple M4 Pro（12 核 CPU：8P+4E，24 GB 统一内存，PyTorch 2.8.0 MPS）。**训练服务器（重训练路线）**：Linux + NVIDIA RTX 4090（24 GB 显存）+ 256 GB 内存。服务器的 CPU 核数、磁盘空间、驱动 / CUDA 版本与网络条件以一键训练包首次运行的自检结果为准（见 6.2 节） |
+| **模型体量与算子适配** | 总参数量控制在 **25M–40M**（高保真轻 Stem + `ConvNeXt-Tiny`/`ResNet34` + `F_2(D_2=128)` + 轻量矢量编码器/6 层 MapTRv2 解耦层级解码器/GNN）。**解耦 Intra/Inter-Instance 注意力**将 `K_lane=32` 下的解码器自注意力开销压低 `>20×`，支撑 `1024×1024` 单窗推理与 `512–896` 训练。Deformable Cross-Attention 默认在**所有设备**上统一采用 `gather` 可微双线性采样（MPS 上替代尚不支持反向的 `grid_sample`，杜绝 CPU fallback；CUDA 上保持与 MPS 数值一致）。训练采用 `batch_size = 4~8` + 梯度累积 |
+| **性能实测门禁与时长预算** | **拒绝未经验证的吞吐臆测**。M0 已在本机实测三项基准：(1) 选择性抗锯齿光栅化（窄标线 `4×4` + 宽面 `1×`）vs 解析覆盖率光栅化的单图 CPU 耗时；(2) 单图前向/反向延迟与显存（含 `896×896` 训练与 `1024×1024` 推理）；(3) `6–8` 进程并行执行 `netconvert + 往返核验 + sumo` 的路口/秒吞吐。结果见 8.3 节：**Layer 1 按 MPS 吞吐计约需 `60–200 h`，超出原 `24–48 h` 预算**，因此 Layer 1 预训练改在训练服务器执行；最终 epoch 数与样本量在服务器首次运行的校准基准完成后定案并记入第 8 节。原初步预算仅作参考：Layer 1 合成预训练（3–5 万口，~20–30 epochs）约 `24–48 h`；Layer 2 真实物理自监督与渐进自训练约 `12–24 h`；Layer 3 每轮分层抽样 `500–1,000` 口 × `K = 16` 候选，执行 `4–8` 轮多对偏好迭代 DPO（及可选 GRPO）约 `8–16 h` |
+| **Python 环境** | **本机**：在 APFS 磁盘维护独立 conda 环境 `baidu2sumo`（PyTorch 2.8.0 MPS + GeoPandas/Shapely + OpenCV + SciPy + `sumolib`/`traci` 1.28.0），调用 `~/.microsim-platform/venv/bin/{netconvert,sumo}`（SUMO 1.28.0）。**服务器**：由一键训练包在包内自建隔离环境（见 6.2 节），PyTorch 主版本与本机保持一致（2.8.x，CUDA 构建），SUMO 使用同版本 `eclipse-sumo` Linux 轮子 |
+| **存储预算与 I/O 分离** | 原始 55.54 GB GPKG 严格只读。本机 APFS 缓存目录 `~/cache/baidu2sumo/` 总预算 **`~25–35 GB`**：合成轻量矢量与真值（5 万口 `< 1.5 GB`，在线光栅化）+ 真实广州切片与紧凑压缩 SDF 场（5 千口 `~12–15 GB`）+ checkpoints 与仿真日志（`~5–10 GB`）。exFAT 仓库内只保存源码、配置、轻量切分清单、指标报告与精选叠图。训练包与服务器训练产物都不放进仓库 |
+| **环境纪律** | 严禁使用 `/opt/homebrew/bin/python3`（其 `pyexpat` 损坏，SUMO XML 解析会报错）；严禁在 exFAT 仓库盘建 venv / conda 环境（不支持软链接）；运行 Python 默认加 `-B`，pytest 关闭缓存目录；macOS 在 exFAT 上新建或修改文件会产生 `._*` 附属文件，只清理自己本次新建/修改文件对应的 `._*` |
+
+### 6.1 双算力路线分工与设备无关约束
+
+1. **分工**：
+   - **Mac 本机（MPS）**：数据读取与张量化、合成引擎与真值生成（含 SUMO 往返核验）、模型与损失实现、全部单元测试、小规模冒烟训练（少量样本过拟合与数百步收敛性检查）、推理、评测、底图叠图与视觉终审、训练包构建与训练成果导入；
+   - **Linux 服务器（CUDA）**：MPS 吞吐不足的重训练阶段。M1 的 Layer 1 合成预训练确定在服务器执行；M2（Layer 2）与 M3（Layer 3）中的重训练部分，在相应里程碑开始前按实测吞吐决定是否同样迁移；
+   - 同一套源码、配置与数据契约同时服务两条路线，**不得为某一设备分叉维护两份模型或训练代码**。
+2. **设备选择**：训练、评测、推理入口统一通过配置 / 环境变量 `B2S_DEVICE ∈ {auto, cuda, mps, cpu}` 选择设备。`auto` 的顺序为 `cuda → mps → cpu`。代码中不得硬编码 `"mps"` 或 `"cuda"`。
+3. **数值一致性**：
+   - 可变形注意力默认在所有设备上使用同一 `gather` 双线性采样实现。CUDA 上若要切换到原生 `grid_sample` 或专用算子以提速，必须先通过与默认实现的等价性单测（前向误差 `< 1e-5`），并以配置开关启用，默认关闭；
+   - 混合精度：MPS 定型 fp32（8.3 节）；CUDA 上由训练包校准步骤实测 fp32 / bf16 / fp16 的吞吐，并对同一批数据比较 AMP 与 fp32 的梯度余弦相似度，只有达到 `configs/` 中的门槛（默认 `≥ 0.99`）且训练损失无发散才启用 AMP，否则回退 fp32。校准结论写入运行记录。
+4. **checkpoint 跨设备通用**：checkpoint 一律保存为 CPU 张量的 `state_dict` + 完整配置快照 + 训练包 `MANIFEST`。服务器训练的权重必须能在本机 MPS 上直接加载，用于推理与评测；导入时执行一次“同一输入、两设备前向输出一致性”检查。
+5. **单元测试分层**：设备无关测试在两端都必须通过；MPS 专属测试在 Linux 上自动跳过；CUDA 专属测试（含 CUDA 上采样等价性与 AMP 校准逻辑）在本机自动跳过，但在训练包自检中强制执行。
+
+### 6.2 一键训练包（服务器离线一键训练）规范
+
+M1 起，凡需在服务器执行的训练，均由本机生成一个**自包含的一键训练包**。上传服务器、解压后执行一条命令即可开始训练；训练进度可在服务器终端实时查看；训练成果可打包拷回本机。
+
+1. **构建（本机）**：`scripts/build_train_bundle.py --stage <layer1|…> --out <APFS 缓存目录>` 生成 `b2s_train_<stage>_<git短哈希>_<日期>.tar.gz`。构建前必须满足：本机单元测试全部通过、冒烟训练通过、工作区已提交（`MANIFEST` 记录 git 提交号；有未提交改动时拒绝构建，除非显式 `--allow-dirty` 并在 `MANIFEST` 中标记）。
+2. **包内结构**：
+   ```text
+   b2s_train_<…>/
+   ├── run_train.sh        # 一键入口：自检 → 建环境 → 校准 → 启动训练（tmux 会话）
+   ├── watch.sh            # 实时查看训练进度（进入 tmux 会话，或 tail 日志）
+   ├── pack_results.sh     # 打包训练成果，供拷回本机
+   ├── MANIFEST.json       # git 提交号、配置哈希、数据与轮子 sha256、构建时间、阶段与版本
+   ├── env/                # 自包含运行环境（离线安装）
+   │   ├── python/         # Linux x86_64 独立 CPython 3.12（python-build-standalone）
+   │   ├── wheels/         # 全部依赖的 manylinux x86_64 轮子（PyTorch 2.8.x CUDA 构建、torchvision、numpy、scipy、shapely、opencv-python-headless、pyyaml、pytest、tqdm/rich、eclipse-sumo / sumolib / traci 1.28.0 等）
+   │   └── requirements.lock  # 带哈希的锁定清单
+   ├── code/               # src/、configs/、scripts/、tests/（与 MANIFEST 中的提交号一致）
+   ├── data/               # 该阶段训练所需的全部数据（如 Layer 1 合成矢量库与真值图、split 清单），路径在 configs 中重写为包内相对路径
+   └── runs/               # 训练输出位置（初始为空）
+   ```
+   - 环境完全离线可装：本机用 `pip download --platform manylinux…_x86_64 --python-version 3.12 --only-binary=:all:` 预取 Linux 轮子，服务器无需联网，也无需 root。服务器可联网时，`run_train.sh --online` 允许改为在线安装（仍按锁定清单）；
+   - 服务器只需预装 NVIDIA 驱动（CUDA 运行时随 PyTorch 轮子提供）。打包时选定的 CUDA 构建版本记入 `MANIFEST`；若服务器驱动版本过旧，自检会给出明确提示，打包脚本可用参数改选更早的 CUDA 构建重新打包；
+   - 预计包体约 `5–6 GB`（PyTorch CUDA 轮子及其 NVIDIA 运行库约 `3–4 GB`，Layer 1 数据 `< 1.5 GB`）。
+3. **`run_train.sh` 流程**（幂等，可重复执行）：
+   1. **自检**：OS / 架构、`nvidia-smi`（GPU 型号、显存、驱动版本）、CPU 核数、内存、磁盘剩余空间、`tmux` 是否可用；逐项打印结果，不满足即停止并说明原因；
+   2. **建环境**：首次运行时在包目录内解压 Python 并离线安装轮子到 `./.venv`，之后复用；校验 `MANIFEST` 中的 sha256；
+   3. **包内自测**：执行设备无关单测子集 + CUDA 专属单测（采样等价性、checkpoint 跨设备格式）；
+   4. **校准**：CUDA 前反向基准、AMP 判定（6.1-3）、显存内最大 batch、DataLoader 进程数（依据 CPU 核数与在线光栅化吞吐）。结果写入 `runs/<run_id>/calibration.json`，训练配置据此确定，命令行可显式覆盖；
+   5. **启动训练**：在名为 `b2s_<run_id>` 的 `tmux` 会话中启动，SSH 断开后训练不中断；无 `tmux` 时退化为 `nohup` + 日志文件。启动后打印查看进度、恢复训练与打包成果的命令；
+   6. **断点续训**：定期保存 `last` 与 `best` checkpoint；`run_train.sh --resume <run_id>` 从最近 checkpoint 继续。
+4. **实时进度**（服务器终端）：
+   - 训练进程在终端持续刷新进度条与状态行：当前阶段 / epoch / step、各损失分量、学习率、样本/秒、已用时间与预计剩余时间（ETA）、GPU 显存与利用率、最近一次验证指标；
+   - 同时写入 `runs/<run_id>/train.log`（人类可读）与 `metrics.jsonl`（逐步结构化指标）；
+   - `./watch.sh [run_id]`：有 tmux 时进入对应会话实时查看（`Ctrl-b d` 退出而不影响训练），无 tmux 时 `tail -f` 日志并附带汇总的最新指标；
+   - 可选 TensorBoard 日志，但终端进度是必备能力，不依赖浏览器。
+5. **成果回传**：
+   - `./pack_results.sh <run_id>` 生成 `results_<run_id>.tar.gz`，内含 `MANIFEST.json`、配置快照、随机种子、数据切分版本、`calibration.json`、`best`/`last` checkpoint、汇总指标 JSON、`metrics.jsonl`、训练日志与验证样例叠图，并附 sha256 清单；
+   - 用户用 `scp` / `rsync` 拷回本机后，执行 `scripts/import_results.py <results_….tar.gz>`：校验 sha256 与 `MANIFEST`（提交号与本机代码对应），把 checkpoint 放入 APFS 缓存目录，把轻量报告与叠图放入仓库 `runs/`，并在本机 MPS 上完成跨设备一致性检查与评测；
+   - 每次服务器训练都必须满足 AGENTS.md 的可复现要求：配置、种子、切分版本、权重标识、汇总指标与样例叠图齐全。
+
+### 6.3 仓库结构
+
+```text
+/Volumes/USB DISK/百度路网转化/
+├── AGENTS.md           # 项目原则与红线（不写具体操作与参数）
+├── configs/            # 路径、数据、图契约、解码、导出、仿真、切分、训练与奖励配置（YAML/JSON）
+├── src/
+│   ├── common/         # 配置加载、坐标数学、设备选择
+│   ├── data/           # GPKG 读取、米制投影、BEV / 矢量张量化、合成数据生成器、空间切分
+│   ├── graph/          # 标准化有向车道图、约束图解码器、分块拼接
+│   ├── models/         # 编码器、解码器、拓扑与轨迹头
+│   ├── rl/             # SUMO-in-the-loop 环境、奖励与 RL 训练
+│   ├── sumo_io/        # G ↔ SUMO plain XML / netconvert / 往返核验 / 仿真测试台
+│   └── eval/           # 空间留出评测、几何 / 拓扑 / 仿真指标与底图叠加渲染
+├── scripts/            # 训练、推理、评测、可视化、训练包构建与成果导入的 CLI 入口
+├── tests/              # 单元测试
+└── docs/
+    └── DESIGN.md       # 唯一权威技术设计文档
+```
 
 ---
 
@@ -366,6 +464,87 @@ $$R(G) = w_1 R_{\text{align}} + w_2 R_{\text{no\_intrusion}} + w_3 R_{\text{reca
 | 里程碑 | 核心交付 | 可机检量化验收门槛 + 视觉门禁 |
 | --- | --- | --- |
 | **M0：工程底座、数据契约与性能基准** | 统一 APFS ML+SUMO 环境；`EPSG:32649` 任意 ROI 提取 + 选择性抗锯齿 / 解析覆盖率 36ch 在线光栅化 + 矢量 Token 化；完整图数据结构 $G$（`K_lane=32`）、增强约束图解码器、超大选区确定性分块端口拼接与 SUMO 序列化器（含显式 `<edge/node shape>`、`changeLeft="authority"`、岛侧辅助行人锚点边、`<connection from="..."/>` 禁补连、`--tls.set` 与编译后往返核验）；`≥ 500 m` 隔离带跨区切分清单；本机 M4 Pro 算子/光栅化/仿真吞吐实测基准报告 | 1. 单元测试 100% 通过（含超大选区分块端口拼接单测）；<br>2. 手工构造的 20+ 种复杂拓扑标准图（须覆盖展宽、单向渠化右转斑马线、中央岛二次过街、路段掉头、实线禁变道、零出边禁自动补连、公交道）`netconvert` 零错零告警编译率 **100%**、**往返连接集合 100% 完全一致**、**编译前后车道/内部连接几何 Hausdorff 漂移 `≤ 0.15 m`**，`sumo`（含 `--collision.check-junctions`）`collisions == 0`、`teleports == 0` 且 `changeLeft="authority"` 实测阻断民用车变道；<br>3. MPS 原生双线性采样数值误差 `< 1e-5`（相对 CPU `grid_sample`）且反向零 CPU fallback；完成 `4×4` 选择性抗锯齿 vs 解析覆盖率吞吐基准落盘并定型 |
-| **M1：合成引擎 + DL 基座（Layer 1）** | 5 类视觉可观测事件规范化分段协议（`K_lane=32`）+ 运动学内部轨迹生成器 + 3–5 万合成轻量矢量库（含左转待转区、路口引导虚线、公交/可变/潮汐车道、无标线支路/非机动车道/港湾式公交站负样本、跨块端口对比样本与任意 `roi_mask`）；双编码器融合 + MapTRv2 解耦层级解码器训练完成 | **合成留出测试集（含 `>172.8 m` 分块拼接验证）**：<br>• 车道中心线横向误差 `P50 ≤ 12 cm`、`P90 ≤ 25 cm`；<br>• 有效车道与人行横道 F1 `≥ 92%`，无标线支路与非机动车道误建率 `FPR ≤ 2%`；<br>• 导向箭头转向 F1 `≥ 92%`；<br>• **往返一致编译成功率 `≥ 95%`（`Hausdorff ≤ 0.20 m`）**，交付网稀疏单 OD 与测试台（`--tls.set`）全 OD 到达率 `≥ 92%`，`collisions == 0` 通过率 `≥ 95%`；<br>**真实验证集**：输出首批 Zero-shot 底图叠图与域差诊断报告 |
+| **M1：合成引擎 + DL 基座（Layer 1）** | 5 类视觉可观测事件规范化分段协议（`K_lane=32`）+ 运动学内部轨迹生成器 + 3–5 万合成轻量矢量库（含左转待转区、路口引导虚线、公交/可变/潮汐车道、无标线支路/非机动车道/港湾式公交站负样本、跨块端口对比样本与任意 `roi_mask`）；双编码器融合 + MapTRv2 解耦层级解码器训练完成；**设备无关训练框架（`B2S_DEVICE`，MPS / CUDA 同一套代码）+ 一键训练包构建（`build_train_bundle.py`）/ 服务器端 `run_train.sh`、`watch.sh`、`pack_results.sh` + 本机成果导入（`import_results.py`）**（6.1–6.2 节）；本机完成合成数据生成、单测与 MPS 冒烟训练，Layer 1 正式预训练在 Linux 4090 服务器执行 | **合成留出测试集（含 `>172.8 m` 分块拼接验证）**：<br>• 车道中心线横向误差 `P50 ≤ 12 cm`、`P90 ≤ 25 cm`；<br>• 有效车道与人行横道 F1 `≥ 92%`，无标线支路与非机动车道误建率 `FPR ≤ 2%`；<br>• 导向箭头转向 F1 `≥ 92%`；<br>• **往返一致编译成功率 `≥ 95%`（`Hausdorff ≤ 0.20 m`）**，交付网稀疏单 OD 与测试台（`--tls.set`）全 OD 到达率 `≥ 92%`，`collisions == 0` 通过率 `≥ 95%`；<br>**真实验证集**：输出首批 Zero-shot 底图叠图与域差诊断报告；<br>**训练路线**：训练包在服务器上解压后一条命令完成自检、离线建环境、包内自测、校准并开始训练；终端可实时查看进度且 SSH 断开不中断；可断点续训；成果包拷回本机后通过 sha256 / `MANIFEST` 校验，并在 MPS 上通过跨设备前向一致性检查后完成上述评测 |
 | **M2：真实物理自监督迁移（Layer 2）** | 3–6 千真实广州平交口零启发式自动采样与紧凑 SDF 场缓存；防退化完整 $\mathcal{L}_{\text{phys}}$（含反合并 $\mathcal{L}_{\text{no\_split}}$、防非机动渗漏的 $M_{\text{motor\_support}}$ 覆盖 $\mathcal{L}_{\text{cov}}$、双向箭头精确率/召回率 $\mathcal{L}_{\text{arrow}}$、路口内车道级配对代理损失 $\mathcal{L}_{\text{pair\_proxy}}$、轮廓-端点一致性与纵向实线门控禁入）；Sim+Real 混合训练 + 局部渐进自训练与 `train`-only 难例反哺 | **真实广州 `val` 留出集（含双轨 raw/decoded 统计）**：<br>• 车道中心线相对标线中轴横向偏移 `P50 ≤ 15 cm`、`P90 ≤ 35 cm`；<br>• 纵向压实线率 `≤ 3%`，安全岛/导流区侵入率 `≤ 1%`，**车道内部分隔线穿越率（反合并）`≤ 2%`**；<br>• **有效标线机动车道覆盖 F1 `≥ 88%`**，导向箭头覆盖率 `≥ 90%` / **转向 F1 `≥ 85%`**，斑马线白条 IoU `≥ 0.72`；<br>• 无标线支路/负语义区/非机动车道误建率 `FPR ≤ 5%`；<br>• **往返一致编译成功率 `≥ 92%`（`Hausdorff ≤ 0.20 m`）**；<br>• **Eval-Only 人工核验审计集初版基线**：逐臂车道数精确率 `≥ 82%`、转向矩阵 F1 `≥ 80%`；视觉终审无大面积偏移与明显支路/非机动残留 |
 | **M3：SUMO-in-the-Loop RL 精修（Layer 3）** | 奖励方差归因检验；结构化合法采样 + 多种子确定性仿真测试台（`--tls.set=<junction_core_ids>` + `--collision.check-junctions`）+ 每轮分层抽样与可分解近似似然多对偏好迭代 DPO（及可选结构化 GRPO / 方案 B 叠层） | **跨区留出真实 `test` 集（排除开创大道，3 固定种子均值）**：<br>• 中心线横向偏移 `P50 ≤ 12 cm`、`P90 ≤ 28 cm`，斑马线白条 IoU `≥ 0.78`；<br>• 压实线率 `≤ 1.5%`，安全岛/导流区侵入率 `≤ 0.5%`，**车道内部分隔线穿越率（反合并）`≤ 1.0%`**，**有效标线机动车道覆盖 F1 `≥ 92%`**，无标线支路/非机动车道 `FPR ≤ 3%`；<br>• 导向箭头覆盖率 `≥ 95%` / **转向 F1 `≥ 92%`**；死胡同/无源车道率 **raw `≤ 3%`、decoded `≤ 0.5%`**；<br>• **往返一致编译成功率 `≥ 98%`（`Hausdorff ≤ 0.20 m`）**，**交付版 `site.net.xml` 稀疏单 OD 到达率 `≥ 96%`**，测试台 `eval_sim.net.xml` 全 OD 到达率 `≥ 96%`、`collisions == 0` 通过率 `≥ 98%`、`teleports == 0` 通过率 `≥ 95%`；<br>• **Eval-Only 人工核验审计集（20–40 口）硬性门禁**：逐臂真实车道数精确率 `≥ 90%`、真实转向矩阵 F1 `≥ 90%`、真实无标线支路与非机动车道 `FPR ≤ 3%`、人行横道召回率 `≥ 92%`；<br>• 批量交付底图叠加与仿真轨迹视觉终审包（含审计对照表）供用户实测 |
+
+---
+
+## 8. 实现进度与实测记录
+
+**里程碑状态**：M0 已完成（2026-11-26）；**M1 尚未开始**。2026-11-27 已确定 M1 起新增 Linux NVIDIA 训练路线与一键训练包（6.1–6.2 节），保留 Mac MPS 路线。
+
+### 8.1 M0 代码与配置映射（2026-11-26）
+
+| 设计条目 | 实现位置 | 配置 |
+| --- | --- | --- |
+| 统一 APFS 环境 | conda `baidu2sumo`（克隆自 `jiaoping`：PyTorch 2.8.0 MPS、GeoPandas、OpenCV、SciPy，新增 `sumolib` / `traci` 1.28.0）；SUMO 二进制来自 `~/.microsim-platform/venv/bin` | `configs/paths.yaml` |
+| 3.1 任意 ROI、UTM 投影、16 m 缓冲、32 倍数 padding | `src/data/roi.py` | `configs/data.yaml` |
+| 3.2 分支 A：36 通道选择性抗锯齿光栅化 | `src/data/rasterize.py` | `configs/data.yaml`（`channels` / `raster`） |
+| 3.2 分支 B：稀疏矢量 Token | `src/data/tokenize.py` | `configs/data.yaml`（`tokens`） |
+| 3.2 双编码器：高保真 Stem + ResNet34 阶段 + 4 层 FPN | `src/models/bev_encoder.py` | — |
+| 3.2 MPS 原生可微双线性采样 / 多尺度 Deformable Attention | `src/models/sampling.py` | — |
+| 4.1 标准化有向车道图 $G$ 与定长张量 | `src/graph/lane_graph.py` | `configs/graph.yaml` |
+| 4.2 阶段 E 结构化约束图解码器（含原始 / 解码后双轨拓扑统计） | `src/graph/decoder.py`（scipy HiGHS MILP） | `configs/decoder.yaml` |
+| 3.1-4 超大选区分块与端口拼接 | `src/graph/stitching.py` | `configs/tiling.yaml` |
+| 4.3 SUMO 序列化 / netconvert / 往返核验 | `src/sumo_io/{serializer,netconvert,roundtrip,pipeline}.py` | `configs/sumo_export.yaml` |
+| 5 Layer 3-1 / 7.1 确定性仿真测试台 | `src/sumo_io/simulate.py` | `configs/sim.yaml` |
+| 7.1-1 防泄漏空间切分 | `src/data/splits.py`、`scripts/build_split_manifest.py` → `configs/splits/split_v1.json` | `configs/splits.yaml` |
+| M0 手工标准图库（Layer 1 合成引擎雏形） | `src/data/standard_graphs.py`（26 张） | — |
+| 验收与基准入口 | `scripts/run_sumo_suite.py`、`scripts/bench_m0.py`、`scripts/render_standard_graphs.py`；单测 `tests/` | — |
+
+运行方式（仓库根目录）：`/opt/anaconda3/envs/baidu2sumo/bin/python -B -m pytest`；`… -B -m scripts.run_sumo_suite`；`… -B -m scripts.bench_m0`。报告落盘于 `runs/m0/`（`sumo_suite/report.json`、`benchmark.json`、`figures/`）。
+
+### 8.2 M0 验收结果
+
+| 验收项（7.2 节） | 结果 |
+| --- | --- |
+| 1. 单元测试 100% 通过（含超大选区分块端口拼接单测） | **38/38 通过，0 跳过**。拼接单测：300 m 双路口走廊在 420 m ROI 上分 3 窗裁切（核心区 140 m，窗间重叠 32 m），端口按全局坐标 + `port_embed` 余弦代价经 Hungarian 匹配后逐车道首尾拼接；拼接图与整窗裁切图的车道 / edge / 连接 / 斑马线数量与连接拓扑完全一致，车道几何 Hausdorff `< 0.05 m`（直线段为 0）；嵌入噪声 σ = 0.5 时仍正确匹配，出口端嵌入取反时 0 误拼；拼接图可零告警编译 |
+| 2. 20+ 种复杂拓扑标准图 | **26/26 通过**，覆盖：十字 / T / Y / 斜交 / 5 岔 / 6 岔带中分 / 错位 / 弯道引道 / 宽窄与非对称车道数 / 单行臂 / 路口内掉头 / 双左转 / 实线禁变道 / 零出边禁补连 / 中央岛二次过街 / 进口展宽 / 出口缩减 / 公交专用道 / 可变与潮汐车道 / 路段掉头开口 / 路段二次过街 / 路段一次过街 / 单向渠化右转斑马线 / 大路口长左转 / 双路口走廊。<br>• `netconvert` 零错误、零意外告警编译率 100%（唯一的拓扑事实提示来自 `zero_out_edge` 夹具自身声明的死胡同 edge，见 4.3-2 告警分类）；<br>• 往返连接集合 100% 一致；编译前后几何 Hausdorff 最大值：车道 `0.0075 m`，内部连接 `0.0067 m`，斑马线 `0.006 m`（即 `net.xml` 0.01 m 取整误差；门禁 `0.15 m`）；斑马线零丢弃；<br>• 3 个固定种子（42 / 137 / 2026）× 3 档仿真（交付网稀疏单车、测试台探测流、测试台中等冲突流 180 veh/h/进口车道）：到达率全部 100%，`collisions == 0`，`teleports == 0`；<br>• `changeLeft/changeRight="authority"` A/B：允许组每种子 11–12 次变道，禁变道组 0 次；<br>• 不写 `<connection from="e"/>` 时，`netconvert` 对零出边 edge 擅自补出 4 条连接；写出后为 0 条 |
+| 3. MPS 原生双线性采样误差 `< 1e-5` 且反向零 CPU fallback；`4×4` vs 解析覆盖率吞吐基准定型 | 前向最大绝对误差 **0**，特征梯度 `4.8e-7`，采样坐标梯度相对误差 `3.6e-7`；在 `PYTORCH_ENABLE_MPS_FALLBACK=0` 下前反向全部通过（同环境原生 `grid_sample` 反向直接报 `NotImplementedError`）。光栅化定型为**解析精确覆盖率**（见 3.2 节与 8.3 节） |
+
+### 8.3 本机实测基准（Apple M4 Pro，`runs/m0/benchmark.json`）
+
+- **光栅化**（24 个开创大道真实路口窗口）：
+  - 解析覆盖率：`512²` `0.043 s`，`896²` `0.123 s`，`1024²` `0.132 s`；
+  - `4×4` 超采样：`512²` `0.171 s`，`896²` `0.485 s`，`1024²` `0.630 s`；
+  - GPKG 窗口读取约 `0.03 s`，Token 化 `0.01–0.03 s`；
+  - 8 进程全流程（读 + 光栅化 + Token 化，`896²`）：解析 `30.0 样本/s`，`4×4` `11.7 样本/s`。
+- **MPS 前反向**（探针模型：BEV 编码器 + 2 层 MSDeformAttn，10.9M 参数，fp32）：
+  - `896²` 训练：bs1 `0.34 s`（`2.2 GiB`），bs2 `0.68 s`（`4.4 GiB`），bs4 `1.38 s`（`8.8 GiB`）；
+  - `512²` 训练：bs8 `0.98 s`（`6.7 GiB`）；
+  - `1024²` 推理：`0.10 s`（`2.7 GiB`）。
+- **AMP 定型为 fp32**：fp16 / bf16 autocast 在 MPS 上均**慢于** fp32（`896²` bs1 分别为 `0.40 / 0.39 s`）；bf16 梯度与 fp32 的余弦相似度仅 `0.84`（fp16 为 `0.98`）。训练默认 fp32。
+- **仿真吞吐**（标准图：编译 + 往返核验 + 测试台编译 + 探测流仿真）：1 / 6 / 8 进程分别为 `1.98 / 9.92 / 11.80 路口/s`。
+- **时长预算校准**：
+  - Layer 3：每轮 `500–1,000 口 × K = 16`，共 `0.8–1.6 万` 次评估；按 8 进程 `11.8 次/s` 约 `11–23 min/轮`，与原预算 `20–40 min/轮` 一致。真实路口的冲突流 + 3 种子会更慢，届时复测。
+  - **Layer 1 明显超出原 `24–48 h` 预算**：仅探针模型的训练吞吐就只有约 `3 样本/s`（`896²`）到 `8.2 样本/s`（`512²`），`512–896` 均匀随机窗的等效吞吐约 `4.2 样本/s`；完整模型（解码器 + GNN）预计再慢 `1.5–2×`。按 3–5 万口 × 20–30 epochs（`0.6–1.5 M` 样本）计，约需 `60–200 h`。**已定处置方向（2026-11-27）**：Layer 1 正式预训练迁至 Linux RTX 4090 服务器（6.1 节）。epoch 数与样本量在一键训练包首次运行的 CUDA 校准完成后定案并补记于此；若仍超预算，再从“减少 epoch（如 8–12 个）、窗口分布偏向 `512–640`、减少合成样本量、在 25–40M 总参数内压缩主干”中选择。
+  - 光栅化供给（`30 样本/s`）约为 GPU 消耗速度的 10 倍，不是瓶颈。
+
+### 8.4 空间切分清单 `split_v1`
+
+- **区块与行政区**：UTM 5 km × 5 km 区块。GPKG 中只有南沙 / 番禺填有 `行政区名称`，因此改用爬取工程的 11 区行政边界（只读资产 `districts_wgs84.geojson`），对 `道路参考线` 质心做空间连接后多数表决确定区块归属。
+- **分配**：区块权重为其中 `信号灯点位` 的数量。每个行政区内，区块按权重降序依次分给当前缺口最大的集合（train / val / test = 70 / 15 / 15，种子 `20261126`）。
+- **dev 区块**：开创大道样本外包框外扩 500 m 所覆盖的 4 个区块整体划为 `dev`（val-dev），不进入 train / test。
+- **隔离带定义**：样本中心到任一相邻（8 邻域）且集合不同的区块矩形的距离 `< 250 m + 118.4 m` 即判为 `buffer`。由此任意两个不同集合样本的中心距 `≥ 736.8 m`，窗口（含缓冲，半跨度 `118.4 m`）之间净间隔 `≥ 500 m`。生成脚本对全部信号灯样本两两自检，违例为 0。
+- **统计**（8,545 个信号灯点位）：train 5,331 / val 878 / test 832 / dev 295 / buffer 1,208（14%）/ 未覆盖 1。区块：train 145 / val 103 / test 96 / dev 4。test 覆盖 9 个行政区（越秀、荔湾区块过少，未分到 test）。
+- 历史 `留出集.json` 的 66 口落入 train 41 / val 8 / test 8 / buffer 8 / dev 1，**仅作参考，不作为本项目的切分依据**。
+
+### 8.5 M0 实测修订汇总（均已同步至上文相应章节）
+
+1. `junction_core.polygon` 由 16 点扩为 **32 点**，且必须精确经过全部接入横断面角点（4.1 节）；
+2. 端口节点同样写出由横断面角点构成的显式 `shape`（4.3 节）；
+3. 岛侧辅助锚点边按“远端落脚点所在角扇区的角平分线”确定性放置，同一扇区共用一条，且不改动节点 `shape`（4.3 节）；
+4. 测试台副本的配时布局改为 `--tls.layout=incoming`（4.3 节、`configs/sumo_export.yaml`）；
+5. `netconvert` 告警分为“$G$ 显式声明的拓扑事实提示”与“意外告警”两类，门禁针对后者（4.3 节）；
+6. 窄线光栅化定型为解析精确面积覆盖率；主轴场结构张量取 `σ = 2.5 px`；箭头朝向约定为 `90° − 旋转角度`，并逐要素投影换算（3.2 节）；
+7. 训练精度默认 fp32（8.3 节）；
+8. 测试台中等冲突流定为 180 veh/h/进口车道（`configs/sim.yaml`）。
+
+### 8.6 M0 已知局限（移交 M1 处理）
+
+- 标准图的 `K_conn` 由端点位置 + 切向锁定的三次 Hermite 曲线生成，**尚不是**第 5 节所述带避障、最小转弯半径与并列保序间隔约束的 $C^2$ 运动学轨迹生成器（M1 交付）。路段掉头开口夹具的掉头半径约 `3.1 m`，小于损失函数中的 `R_min = 4.5 m`。
+- 标准图的车道-去向分配采用单调连续区间，出口无源车道再以单调扇出补连。这只用于编译与仿真契约测试，不代表真实的车道功能分布。
+- 解析覆盖率在同通道多边形重叠处取“绕数相加后截断”，是近似值。多部件标线要素（文字类公交专用道标记、混合实虚线）的 Token 中心线取整要素定向外接矩形的长轴，对长弯道上的多部件线只是弦近似。
+- `z_order_mean / z_order_span` 两个 Phase 2 预留通道在 Phase 1 恒为 0。
+- 8.3 节的模型吞吐来自 BEV 编码器 + 2 层可变形注意力的探针，完整解码器与 GNN 需在 M1 复测；仿真吞吐来自标准图，真实路口需在 M2 / M3 复测。

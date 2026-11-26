@@ -1,0 +1,10 @@
+# 任意 ROI 固定米制分块与端口拼接（docs/DESIGN.md §3.1-4）
+resolution_m: 0.20        # 0.20 m/px
+context_buffer_m: 16.0    # 选区外上下文缓冲
+max_window_px: 1024       # 单窗含缓冲上限 1024 px = 204.8 m
+pad_multiple: 32          # 前向 padding 至 32 倍数
+port_match:
+  gate_m: 4.0             # 端口全局坐标匹配门控半径（跨块同一断面端口距离上限）
+  w_dist: 1.0             # 代价 = w_dist·d/gate_m + w_embed·(1 − cos(embed_a, embed_b))
+  w_embed: 1.0
+  max_cost: 1.5           # 超过即视为未匹配（真实 ROI 边界端口）

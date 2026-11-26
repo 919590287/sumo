@@ -1,0 +1,25 @@
+# 确定性仿真测试台配置（docs/DESIGN.md §5 Layer 3-1 与 §7.1）
+seeds: [42, 137, 2026]          # val / test 固定 3 种子
+train_seed_pool: [42, 137, 2026] # 训练期轮换池（同轮 K 候选共享同一种子）
+
+vtypes:
+  car: {vClass: passenger, length: 4.5, minGap: 2.5, maxSpeed: 16.7, accel: 2.6, decel: 4.5, sigma: 0.5}
+  bus: {vClass: bus, length: 12.0, minGap: 2.5, maxSpeed: 13.9, accel: 1.2, decel: 4.0, sigma: 0.5}
+
+probe:                 # 稀疏全可达 OD 连通探测流：每个 (进口 edge → 出口 edge) 转向
+  vehicles_per_movement: 2
+  headway_s: 3.0
+conflict:              # 中等稳态冲突车流
+  duration_s: 600
+  veh_per_hour_per_entry_lane: 180
+sparse_single:         # 交付版 site.net.xml 无冲突单车探测
+  headway_s: 40.0
+
+sumo_args:
+  - "--collision.check-junctions=true"
+  - "--collision.action=warn"
+  - "--time-to-teleport=120"
+  - "--no-step-log=true"
+  - "--duration-log.statistics=true"
+  - "--ignore-route-errors=false"
+end_s: 3600

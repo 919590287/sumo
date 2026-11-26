@@ -1,0 +1,9 @@
+# 结构化约束图解码器（docs/DESIGN.md §4.2 阶段 E）——纯图论组合优化参数
+tau_node: 0.5      # 节点存在置信度门限
+tau_lane: 0.5      # 车道存在置信度门限
+tau_cw: 0.5        # 人行横道存在置信度门限
+tau_adj: 0.0       # E_adj 对数似然比偏置（边权 = logit(E_adj) - tau_adj）
+tau_succ: 0.0      # E_succ 对数似然比偏置
+tau_cross: 0.5     # E_cross 按 edge 聚合后的激活门限
+eps: 1.0e-6        # 概率截断（避免 log 0）
+max_cycle_cuts: 200 # E_adj 无环路径覆盖的懒惰破环约束迭代上限

@@ -1,0 +1,2911 @@
+{
+ "version": "split_v1",
+ "crs": "EPSG:32649",
+ "block_size_m": 5000.0,
+ "origin": [
+  695000.0,
+  2490000.0
+ ],
+ "gap_m": 500,
+ "window_half_extent_m": 118.4,
+ "buffer_margin_m": 368.4,
+ "fractions": {
+  "train": 0.7,
+  "val": 0.15,
+  "test": 0.15
+ },
+ "seed": 20261126,
+ "dev_blocks": [
+  [
+   11,
+   14
+  ],
+  [
+   11,
+   15
+  ],
+  [
+   12,
+   14
+  ],
+  [
+   12,
+   15
+  ]
+ ],
+ "blocks": [
+  {
+   "ix": 0,
+   "iy": 20,
+   "split": "train",
+   "district": "花都区",
+   "n_signal": 3,
+   "n_ref_lines": 64
+  },
+  {
+   "ix": 1,
+   "iy": 18,
+   "split": "train",
+   "district": "花都区",
+   "n_signal": 0,
+   "n_ref_lines": 4
+  },
+  {
+   "ix": 1,
+   "iy": 19,
+   "split": "val",
+   "district": "花都区",
+   "n_signal": 0,
+   "n_ref_lines": 102
+  },
+  {
+   "ix": 1,
+   "iy": 20,
+   "split": "test",
+   "district": "花都区",
+   "n_signal": 4,
+   "n_ref_lines": 348
+  },
+  {
+   "ix": 1,
+   "iy": 21,
+   "split": "test",
+   "district": "花都区",
+   "n_signal": 6,
+   "n_ref_lines": 113
+  },
+  {
+   "ix": 2,
+   "iy": 16,
+   "split": "test",
+   "district": "花都区",
+   "n_signal": 0,
+   "n_ref_lines": 11
+  },
+  {
+   "ix": 2,
+   "iy": 17,
+   "split": "test",
+   "district": "花都区",
+   "n_signal": 0,
+   "n_ref_lines": 60
+  },
+  {
+   "ix": 2,
+   "iy": 18,
+   "split": "test",
+   "district": "花都区",
+   "n_signal": 1,
+   "n_ref_lines": 164
+  },
+  {
+   "ix": 2,
+   "iy": 19,
+   "split": "val",
+   "district": "花都区",
+   "n_signal": 5,
+   "n_ref_lines": 212
+  },
+  {
+   "ix": 2,
+   "iy": 20,
+   "split": "train",
+   "district": "花都区",
+   "n_signal": 23,
+   "n_ref_lines": 648
+  },
+  {
+   "ix": 2,
+   "iy": 21,
+   "split": "val",
+   "district": "花都区",
+   "n_signal": 2,
+   "n_ref_lines": 204
+  },
+  {
+   "ix": 3,
+   "iy": 16,
+   "split": "train",
+   "district": "花都区",
+   "n_signal": 0,
+   "n_ref_lines": 44
+  },
+  {
+   "ix": 3,
+   "iy": 17,
+   "split": "val",
+   "district": "花都区",
+   "n_signal": 10,
+   "n_ref_lines": 218
+  },
+  {
+   "ix": 3,
+   "iy": 18,
+   "split": "val",
+   "district": "花都区",
+   "n_signal": 19,
+   "n_ref_lines": 739
+  },
+  {
+   "ix": 3,
+   "iy": 19,
+   "split": "train",
+   "district": "花都区",
+   "n_signal": 32,
+   "n_ref_lines": 740
+  },
+  {
+   "ix": 3,
+   "iy": 20,
+   "split": "train",
+   "district": "花都区",
+   "n_signal": 14,
+   "n_ref_lines": 516
+  },
+  {
+   "ix": 3,
+   "iy": 21,
+   "split": "val",
+   "district": "花都区",
+   "n_signal": 4,
+   "n_ref_lines": 141
+  },
+  {
+   "ix": 3,
+   "iy": 22,
+   "split": "train",
+   "district": "花都区",
+   "n_signal": 0,
+   "n_ref_lines": 1
+  },
+  {
+   "ix": 4,
+   "iy": 17,
+   "split": "test",
+   "district": "花都区",
+   "n_signal": 0,
+   "n_ref_lines": 56
+  },
+  {
+   "ix": 4,
+   "iy": 18,
+   "split": "train",
+   "district": "花都区",
+   "n_signal": 46,
+   "n_ref_lines": 1029
+  },
+  {
+   "ix": 4,
+   "iy": 19,
+   "split": "val",
+   "district": "花都区",
+   "n_signal": 27,
+   "n_ref_lines": 820
+  },
+  {
+   "ix": 4,
+   "iy": 20,
+   "split": "val",
+   "district": "花都区",
+   "n_signal": 1,
+   "n_ref_lines": 340
+  },
+  {
+   "ix": 4,
+   "iy": 21,
+   "split": "train",
+   "district": "花都区",
+   "n_signal": 10,
+   "n_ref_lines": 810
+  },
+  {
+   "ix": 4,
+   "iy": 22,
+   "split": "val",
+   "district": "花都区",
+   "n_signal": 0,
+   "n_ref_lines": 24
+  },
+  {
+   "ix": 5,
+   "iy": 12,
+   "split": "val",
+   "district": "荔湾区",
+   "n_signal": 8,
+   "n_ref_lines": 451
+  },
+  {
+   "ix": 5,
+   "iy": 14,
+   "split": "train",
+   "district": "白云区",
+   "n_signal": 16,
+   "n_ref_lines": 406
+  },
+  {
+   "ix": 5,
+   "iy": 15,
+   "split": "test",
+   "district": "白云区",
+   "n_signal": 1,
+   "n_ref_lines": 45
+  },
+  {
+   "ix": 5,
+   "iy": 16,
+   "split": "test",
+   "district": "白云区",
+   "n_signal": 17,
+   "n_ref_lines": 493
+  },
+  {
+   "ix": 5,
+   "iy": 17,
+   "split": "val",
+   "district": "白云区",
+   "n_signal": 19,
+   "n_ref_lines": 447
+  },
+  {
+   "ix": 5,
+   "iy": 18,
+   "split": "train",
+   "district": "白云区",
+   "n_signal": 24,
+   "n_ref_lines": 839
+  },
+  {
+   "ix": 5,
+   "iy": 19,
+   "split": "train",
+   "district": "花都区",
+   "n_signal": 85,
+   "n_ref_lines": 2281
+  },
+  {
+   "ix": 5,
+   "iy": 20,
+   "split": "val",
+   "district": "花都区",
+   "n_signal": 46,
+   "n_ref_lines": 1499
+  },
+  {
+   "ix": 5,
+   "iy": 21,
+   "split": "test",
+   "district": "花都区",
+   "n_signal": 40,
+   "n_ref_lines": 1849
+  },
+  {
+   "ix": 5,
+   "iy": 22,
+   "split": "val",
+   "district": "花都区",
+   "n_signal": 0,
+   "n_ref_lines": 53
+  },
+  {
+   "ix": 6,
+   "iy": 12,
+   "split": "train",
+   "district": "荔湾区",
+   "n_signal": 115,
+   "n_ref_lines": 2747
+  },
+  {
+   "ix": 6,
+   "iy": 13,
+   "split": "train",
+   "district": "荔湾区",
+   "n_signal": 147,
+   "n_ref_lines": 3241
+  },
+  {
+   "ix": 6,
+   "iy": 14,
+   "split": "train",
+   "district": "白云区",
+   "n_signal": 143,
+   "n_ref_lines": 3226
+  },
+  {
+   "ix": 6,
+   "iy": 15,
+   "split": "train",
+   "district": "白云区",
+   "n_signal": 92,
+   "n_ref_lines": 2507
+  },
+  {
+   "ix": 6,
+   "iy": 16,
+   "split": "train",
+   "district": "白云区",
+   "n_signal": 64,
+   "n_ref_lines": 1852
+  },
+  {
+   "ix": 6,
+   "iy": 17,
+   "split": "train",
+   "district": "白云区",
+   "n_signal": 57,
+   "n_ref_lines": 1855
+  },
+  {
+   "ix": 6,
+   "iy": 18,
+   "split": "test",
+   "district": "花都区",
+   "n_signal": 27,
+   "n_ref_lines": 1155
+  },
+  {
+   "ix": 6,
+   "iy": 19,
+   "split": "train",
+   "district": "花都区",
+   "n_signal": 148,
+   "n_ref_lines": 3156
+  },
+  {
+   "ix": 6,
+   "iy": 20,
+   "split": "train",
+   "district": "花都区",
+   "n_signal": 147,
+   "n_ref_lines": 2069
+  },
+  {
+   "ix": 6,
+   "iy": 21,
+   "split": "train",
+   "district": "花都区",
+   "n_signal": 21,
+   "n_ref_lines": 954
+  },
+  {
+   "ix": 6,
+   "iy": 22,
+   "split": "train",
+   "district": "花都区",
+   "n_signal": 6,
+   "n_ref_lines": 393
+  },
+  {
+   "ix": 6,
+   "iy": 23,
+   "split": "test",
+   "district": "花都区",
+   "n_signal": 0,
+   "n_ref_lines": 29
+  },
+  {
+   "ix": 6,
+   "iy": 24,
+   "split": "train",
+   "district": "花都区",
+   "n_signal": 0,
+   "n_ref_lines": 53
+  },
+  {
+   "ix": 7,
+   "iy": 8,
+   "split": "val",
+   "district": "番禺区",
+   "n_signal": 1,
+   "n_ref_lines": 214
+  },
+  {
+   "ix": 7,
+   "iy": 9,
+   "split": "val",
+   "district": "番禺区",
+   "n_signal": 0,
+   "n_ref_lines": 258
+  },
+  {
+   "ix": 7,
+   "iy": 10,
+   "split": "train",
+   "district": "番禺区",
+   "n_signal": 94,
+   "n_ref_lines": 1998
+  },
+  {
+   "ix": 7,
+   "iy": 11,
+   "split": "test",
+   "district": "番禺区",
+   "n_signal": 41,
+   "n_ref_lines": 1114
+  },
+  {
+   "ix": 7,
+   "iy": 12,
+   "split": "val",
+   "district": "海珠区",
+   "n_signal": 129,
+   "n_ref_lines": 2663
+  },
+  {
+   "ix": 7,
+   "iy": 13,
+   "split": "train",
+   "district": "海珠区",
+   "n_signal": 284,
+   "n_ref_lines": 6075
+  },
+  {
+   "ix": 7,
+   "iy": 14,
+   "split": "train",
+   "district": "越秀区",
+   "n_signal": 163,
+   "n_ref_lines": 4166
+  },
+  {
+   "ix": 7,
+   "iy": 15,
+   "split": "train",
+   "district": "白云区",
+   "n_signal": 118,
+   "n_ref_lines": 2896
+  },
+  {
+   "ix": 7,
+   "iy": 16,
+   "split": "train",
+   "district": "白云区",
+   "n_signal": 116,
+   "n_ref_lines": 2848
+  },
+  {
+   "ix": 7,
+   "iy": 17,
+   "split": "test",
+   "district": "白云区",
+   "n_signal": 50,
+   "n_ref_lines": 1880
+  },
+  {
+   "ix": 7,
+   "iy": 18,
+   "split": "train",
+   "district": "白云区",
+   "n_signal": 60,
+   "n_ref_lines": 2110
+  },
+  {
+   "ix": 7,
+   "iy": 19,
+   "split": "train",
+   "district": "花都区",
+   "n_signal": 55,
+   "n_ref_lines": 1352
+  },
+  {
+   "ix": 7,
+   "iy": 20,
+   "split": "train",
+   "district": "花都区",
+   "n_signal": 69,
+   "n_ref_lines": 1149
+  },
+  {
+   "ix": 7,
+   "iy": 21,
+   "split": "test",
+   "district": "花都区",
+   "n_signal": 20,
+   "n_ref_lines": 921
+  },
+  {
+   "ix": 7,
+   "iy": 22,
+   "split": "val",
+   "district": "花都区",
+   "n_signal": 12,
+   "n_ref_lines": 394
+  },
+  {
+   "ix": 7,
+   "iy": 23,
+   "split": "test",
+   "district": "花都区",
+   "n_signal": 10,
+   "n_ref_lines": 232
+  },
+  {
+   "ix": 7,
+   "iy": 24,
+   "split": "train",
+   "district": "花都区",
+   "n_signal": 0,
+   "n_ref_lines": 70
+  },
+  {
+   "ix": 7,
+   "iy": 25,
+   "split": "val",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 8
+  },
+  {
+   "ix": 8,
+   "iy": 7,
+   "split": "val",
+   "district": "南沙区",
+   "n_signal": 9,
+   "n_ref_lines": 769
+  },
+  {
+   "ix": 8,
+   "iy": 8,
+   "split": "val",
+   "district": "番禺区",
+   "n_signal": 9,
+   "n_ref_lines": 1032
+  },
+  {
+   "ix": 8,
+   "iy": 9,
+   "split": "train",
+   "district": "番禺区",
+   "n_signal": 41,
+   "n_ref_lines": 1334
+  },
+  {
+   "ix": 8,
+   "iy": 10,
+   "split": "train",
+   "district": "番禺区",
+   "n_signal": 66,
+   "n_ref_lines": 1874
+  },
+  {
+   "ix": 8,
+   "iy": 11,
+   "split": "train",
+   "district": "番禺区",
+   "n_signal": 75,
+   "n_ref_lines": 2517
+  },
+  {
+   "ix": 8,
+   "iy": 12,
+   "split": "test",
+   "district": "海珠区",
+   "n_signal": 73,
+   "n_ref_lines": 2285
+  },
+  {
+   "ix": 8,
+   "iy": 13,
+   "split": "train",
+   "district": "天河区",
+   "n_signal": 222,
+   "n_ref_lines": 4431
+  },
+  {
+   "ix": 8,
+   "iy": 14,
+   "split": "train",
+   "district": "天河区",
+   "n_signal": 201,
+   "n_ref_lines": 3610
+  },
+  {
+   "ix": 8,
+   "iy": 15,
+   "split": "val",
+   "district": "白云区",
+   "n_signal": 52,
+   "n_ref_lines": 1244
+  },
+  {
+   "ix": 8,
+   "iy": 16,
+   "split": "val",
+   "district": "白云区",
+   "n_signal": 37,
+   "n_ref_lines": 1321
+  },
+  {
+   "ix": 8,
+   "iy": 17,
+   "split": "test",
+   "district": "白云区",
+   "n_signal": 47,
+   "n_ref_lines": 1952
+  },
+  {
+   "ix": 8,
+   "iy": 18,
+   "split": "val",
+   "district": "白云区",
+   "n_signal": 26,
+   "n_ref_lines": 923
+  },
+  {
+   "ix": 8,
+   "iy": 19,
+   "split": "val",
+   "district": "白云区",
+   "n_signal": 23,
+   "n_ref_lines": 560
+  },
+  {
+   "ix": 8,
+   "iy": 20,
+   "split": "train",
+   "district": "花都区",
+   "n_signal": 56,
+   "n_ref_lines": 1436
+  },
+  {
+   "ix": 8,
+   "iy": 21,
+   "split": "test",
+   "district": "花都区",
+   "n_signal": 22,
+   "n_ref_lines": 807
+  },
+  {
+   "ix": 8,
+   "iy": 22,
+   "split": "train",
+   "district": "花都区",
+   "n_signal": 0,
+   "n_ref_lines": 92
+  },
+  {
+   "ix": 8,
+   "iy": 23,
+   "split": "train",
+   "district": "花都区",
+   "n_signal": 4,
+   "n_ref_lines": 150
+  },
+  {
+   "ix": 8,
+   "iy": 24,
+   "split": "val",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 83
+  },
+  {
+   "ix": 8,
+   "iy": 25,
+   "split": "train",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 49
+  },
+  {
+   "ix": 8,
+   "iy": 26,
+   "split": "val",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 5
+  },
+  {
+   "ix": 9,
+   "iy": 5,
+   "split": "test",
+   "district": "南沙区",
+   "n_signal": 0,
+   "n_ref_lines": 35
+  },
+  {
+   "ix": 9,
+   "iy": 6,
+   "split": "test",
+   "district": "南沙区",
+   "n_signal": 10,
+   "n_ref_lines": 949
+  },
+  {
+   "ix": 9,
+   "iy": 7,
+   "split": "val",
+   "district": "南沙区",
+   "n_signal": 30,
+   "n_ref_lines": 938
+  },
+  {
+   "ix": 9,
+   "iy": 8,
+   "split": "test",
+   "district": "南沙区",
+   "n_signal": 8,
+   "n_ref_lines": 1047
+  },
+  {
+   "ix": 9,
+   "iy": 9,
+   "split": "train",
+   "district": "番禺区",
+   "n_signal": 193,
+   "n_ref_lines": 3550
+  },
+  {
+   "ix": 9,
+   "iy": 10,
+   "split": "train",
+   "district": "番禺区",
+   "n_signal": 78,
+   "n_ref_lines": 2642
+  },
+  {
+   "ix": 9,
+   "iy": 11,
+   "split": "test",
+   "district": "番禺区",
+   "n_signal": 51,
+   "n_ref_lines": 1891
+  },
+  {
+   "ix": 9,
+   "iy": 12,
+   "split": "train",
+   "district": "番禺区",
+   "n_signal": 87,
+   "n_ref_lines": 2018
+  },
+  {
+   "ix": 9,
+   "iy": 13,
+   "split": "val",
+   "district": "天河区",
+   "n_signal": 112,
+   "n_ref_lines": 3010
+  },
+  {
+   "ix": 9,
+   "iy": 14,
+   "split": "train",
+   "district": "天河区",
+   "n_signal": 74,
+   "n_ref_lines": 2576
+  },
+  {
+   "ix": 9,
+   "iy": 15,
+   "split": "test",
+   "district": "天河区",
+   "n_signal": 26,
+   "n_ref_lines": 1171
+  },
+  {
+   "ix": 9,
+   "iy": 16,
+   "split": "val",
+   "district": "白云区",
+   "n_signal": 7,
+   "n_ref_lines": 483
+  },
+  {
+   "ix": 9,
+   "iy": 17,
+   "split": "train",
+   "district": "白云区",
+   "n_signal": 48,
+   "n_ref_lines": 1069
+  },
+  {
+   "ix": 9,
+   "iy": 18,
+   "split": "test",
+   "district": "白云区",
+   "n_signal": 21,
+   "n_ref_lines": 1184
+  },
+  {
+   "ix": 9,
+   "iy": 19,
+   "split": "test",
+   "district": "白云区",
+   "n_signal": 26,
+   "n_ref_lines": 1037
+  },
+  {
+   "ix": 9,
+   "iy": 20,
+   "split": "test",
+   "district": "花都区",
+   "n_signal": 14,
+   "n_ref_lines": 615
+  },
+  {
+   "ix": 9,
+   "iy": 21,
+   "split": "val",
+   "district": "花都区",
+   "n_signal": 21,
+   "n_ref_lines": 549
+  },
+  {
+   "ix": 9,
+   "iy": 22,
+   "split": "val",
+   "district": "花都区",
+   "n_signal": 0,
+   "n_ref_lines": 75
+  },
+  {
+   "ix": 9,
+   "iy": 23,
+   "split": "train",
+   "district": "从化区",
+   "n_signal": 3,
+   "n_ref_lines": 103
+  },
+  {
+   "ix": 9,
+   "iy": 24,
+   "split": "test",
+   "district": "从化区",
+   "n_signal": 1,
+   "n_ref_lines": 280
+  },
+  {
+   "ix": 9,
+   "iy": 25,
+   "split": "train",
+   "district": "从化区",
+   "n_signal": 1,
+   "n_ref_lines": 165
+  },
+  {
+   "ix": 9,
+   "iy": 26,
+   "split": "val",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 73
+  },
+  {
+   "ix": 9,
+   "iy": 27,
+   "split": "val",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 76
+  },
+  {
+   "ix": 10,
+   "iy": 5,
+   "split": "test",
+   "district": "南沙区",
+   "n_signal": 39,
+   "n_ref_lines": 656
+  },
+  {
+   "ix": 10,
+   "iy": 6,
+   "split": "train",
+   "district": "南沙区",
+   "n_signal": 32,
+   "n_ref_lines": 1866
+  },
+  {
+   "ix": 10,
+   "iy": 7,
+   "split": "val",
+   "district": "南沙区",
+   "n_signal": 19,
+   "n_ref_lines": 1029
+  },
+  {
+   "ix": 10,
+   "iy": 8,
+   "split": "train",
+   "district": "南沙区",
+   "n_signal": 9,
+   "n_ref_lines": 1435
+  },
+  {
+   "ix": 10,
+   "iy": 9,
+   "split": "test",
+   "district": "番禺区",
+   "n_signal": 21,
+   "n_ref_lines": 1252
+  },
+  {
+   "ix": 10,
+   "iy": 10,
+   "split": "val",
+   "district": "番禺区",
+   "n_signal": 42,
+   "n_ref_lines": 1717
+  },
+  {
+   "ix": 10,
+   "iy": 11,
+   "split": "train",
+   "district": "番禺区",
+   "n_signal": 68,
+   "n_ref_lines": 1198
+  },
+  {
+   "ix": 10,
+   "iy": 12,
+   "split": "test",
+   "district": "番禺区",
+   "n_signal": 43,
+   "n_ref_lines": 1479
+  },
+  {
+   "ix": 10,
+   "iy": 13,
+   "split": "test",
+   "district": "天河区",
+   "n_signal": 111,
+   "n_ref_lines": 2629
+  },
+  {
+   "ix": 10,
+   "iy": 14,
+   "split": "train",
+   "district": "天河区",
+   "n_signal": 124,
+   "n_ref_lines": 2246
+  },
+  {
+   "ix": 10,
+   "iy": 15,
+   "split": "val",
+   "district": "黄埔区",
+   "n_signal": 67,
+   "n_ref_lines": 908
+  },
+  {
+   "ix": 10,
+   "iy": 16,
+   "split": "val",
+   "district": "黄埔区",
+   "n_signal": 11,
+   "n_ref_lines": 558
+  },
+  {
+   "ix": 10,
+   "iy": 17,
+   "split": "test",
+   "district": "白云区",
+   "n_signal": 3,
+   "n_ref_lines": 118
+  },
+  {
+   "ix": 10,
+   "iy": 18,
+   "split": "train",
+   "district": "白云区",
+   "n_signal": 7,
+   "n_ref_lines": 248
+  },
+  {
+   "ix": 10,
+   "iy": 19,
+   "split": "train",
+   "district": "白云区",
+   "n_signal": 20,
+   "n_ref_lines": 908
+  },
+  {
+   "ix": 10,
+   "iy": 20,
+   "split": "train",
+   "district": "花都区",
+   "n_signal": 13,
+   "n_ref_lines": 589
+  },
+  {
+   "ix": 10,
+   "iy": 21,
+   "split": "test",
+   "district": "花都区",
+   "n_signal": 3,
+   "n_ref_lines": 355
+  },
+  {
+   "ix": 10,
+   "iy": 22,
+   "split": "val",
+   "district": "花都区",
+   "n_signal": 0,
+   "n_ref_lines": 70
+  },
+  {
+   "ix": 10,
+   "iy": 23,
+   "split": "train",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 87
+  },
+  {
+   "ix": 10,
+   "iy": 24,
+   "split": "train",
+   "district": "从化区",
+   "n_signal": 9,
+   "n_ref_lines": 390
+  },
+  {
+   "ix": 10,
+   "iy": 25,
+   "split": "train",
+   "district": "从化区",
+   "n_signal": 10,
+   "n_ref_lines": 253
+  },
+  {
+   "ix": 10,
+   "iy": 26,
+   "split": "val",
+   "district": "从化区",
+   "n_signal": 2,
+   "n_ref_lines": 158
+  },
+  {
+   "ix": 10,
+   "iy": 27,
+   "split": "val",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 27
+  },
+  {
+   "ix": 11,
+   "iy": 4,
+   "split": "val",
+   "district": "南沙区",
+   "n_signal": 0,
+   "n_ref_lines": 26
+  },
+  {
+   "ix": 11,
+   "iy": 5,
+   "split": "train",
+   "district": "南沙区",
+   "n_signal": 49,
+   "n_ref_lines": 895
+  },
+  {
+   "ix": 11,
+   "iy": 6,
+   "split": "test",
+   "district": "南沙区",
+   "n_signal": 14,
+   "n_ref_lines": 820
+  },
+  {
+   "ix": 11,
+   "iy": 7,
+   "split": "test",
+   "district": "南沙区",
+   "n_signal": 12,
+   "n_ref_lines": 1536
+  },
+  {
+   "ix": 11,
+   "iy": 8,
+   "split": "test",
+   "district": "南沙区",
+   "n_signal": 32,
+   "n_ref_lines": 1963
+  },
+  {
+   "ix": 11,
+   "iy": 9,
+   "split": "train",
+   "district": "番禺区",
+   "n_signal": 39,
+   "n_ref_lines": 901
+  },
+  {
+   "ix": 11,
+   "iy": 10,
+   "split": "val",
+   "district": "番禺区",
+   "n_signal": 57,
+   "n_ref_lines": 1447
+  },
+  {
+   "ix": 11,
+   "iy": 11,
+   "split": "val",
+   "district": "番禺区",
+   "n_signal": 39,
+   "n_ref_lines": 918
+  },
+  {
+   "ix": 11,
+   "iy": 12,
+   "split": "train",
+   "district": "番禺区",
+   "n_signal": 50,
+   "n_ref_lines": 899
+  },
+  {
+   "ix": 11,
+   "iy": 13,
+   "split": "train",
+   "district": "黄埔区",
+   "n_signal": 92,
+   "n_ref_lines": 1808
+  },
+  {
+   "ix": 11,
+   "iy": 14,
+   "split": "dev",
+   "district": "黄埔区",
+   "n_signal": 104,
+   "n_ref_lines": 1470
+  },
+  {
+   "ix": 11,
+   "iy": 15,
+   "split": "dev",
+   "district": "黄埔区",
+   "n_signal": 74,
+   "n_ref_lines": 1152
+  },
+  {
+   "ix": 11,
+   "iy": 16,
+   "split": "train",
+   "district": "黄埔区",
+   "n_signal": 3,
+   "n_ref_lines": 382
+  },
+  {
+   "ix": 11,
+   "iy": 17,
+   "split": "val",
+   "district": "白云区",
+   "n_signal": 1,
+   "n_ref_lines": 244
+  },
+  {
+   "ix": 11,
+   "iy": 18,
+   "split": "val",
+   "district": "黄埔区",
+   "n_signal": 9,
+   "n_ref_lines": 341
+  },
+  {
+   "ix": 11,
+   "iy": 19,
+   "split": "test",
+   "district": "黄埔区",
+   "n_signal": 64,
+   "n_ref_lines": 775
+  },
+  {
+   "ix": 11,
+   "iy": 20,
+   "split": "train",
+   "district": "白云区",
+   "n_signal": 29,
+   "n_ref_lines": 927
+  },
+  {
+   "ix": 11,
+   "iy": 21,
+   "split": "test",
+   "district": "从化区",
+   "n_signal": 4,
+   "n_ref_lines": 568
+  },
+  {
+   "ix": 11,
+   "iy": 22,
+   "split": "train",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 140
+  },
+  {
+   "ix": 11,
+   "iy": 23,
+   "split": "test",
+   "district": "从化区",
+   "n_signal": 2,
+   "n_ref_lines": 187
+  },
+  {
+   "ix": 11,
+   "iy": 24,
+   "split": "train",
+   "district": "从化区",
+   "n_signal": 3,
+   "n_ref_lines": 340
+  },
+  {
+   "ix": 11,
+   "iy": 25,
+   "split": "val",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 198
+  },
+  {
+   "ix": 11,
+   "iy": 26,
+   "split": "test",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 33
+  },
+  {
+   "ix": 12,
+   "iy": 4,
+   "split": "val",
+   "district": "南沙区",
+   "n_signal": 40,
+   "n_ref_lines": 859
+  },
+  {
+   "ix": 12,
+   "iy": 5,
+   "split": "train",
+   "district": "南沙区",
+   "n_signal": 93,
+   "n_ref_lines": 1639
+  },
+  {
+   "ix": 12,
+   "iy": 6,
+   "split": "train",
+   "district": "南沙区",
+   "n_signal": 113,
+   "n_ref_lines": 3390
+  },
+  {
+   "ix": 12,
+   "iy": 7,
+   "split": "train",
+   "district": "南沙区",
+   "n_signal": 87,
+   "n_ref_lines": 2545
+  },
+  {
+   "ix": 12,
+   "iy": 8,
+   "split": "train",
+   "district": "南沙区",
+   "n_signal": 47,
+   "n_ref_lines": 875
+  },
+  {
+   "ix": 12,
+   "iy": 9,
+   "split": "test",
+   "district": "番禺区",
+   "n_signal": 9,
+   "n_ref_lines": 293
+  },
+  {
+   "ix": 12,
+   "iy": 10,
+   "split": "train",
+   "district": "番禺区",
+   "n_signal": 18,
+   "n_ref_lines": 643
+  },
+  {
+   "ix": 12,
+   "iy": 11,
+   "split": "val",
+   "district": "番禺区",
+   "n_signal": 20,
+   "n_ref_lines": 444
+  },
+  {
+   "ix": 12,
+   "iy": 12,
+   "split": "test",
+   "district": "黄埔区",
+   "n_signal": 52,
+   "n_ref_lines": 2005
+  },
+  {
+   "ix": 12,
+   "iy": 13,
+   "split": "train",
+   "district": "黄埔区",
+   "n_signal": 91,
+   "n_ref_lines": 1866
+  },
+  {
+   "ix": 12,
+   "iy": 14,
+   "split": "dev",
+   "district": "黄埔区",
+   "n_signal": 93,
+   "n_ref_lines": 1565
+  },
+  {
+   "ix": 12,
+   "iy": 15,
+   "split": "dev",
+   "district": "黄埔区",
+   "n_signal": 69,
+   "n_ref_lines": 939
+  },
+  {
+   "ix": 12,
+   "iy": 16,
+   "split": "val",
+   "district": "黄埔区",
+   "n_signal": 5,
+   "n_ref_lines": 318
+  },
+  {
+   "ix": 12,
+   "iy": 17,
+   "split": "val",
+   "district": "黄埔区",
+   "n_signal": 12,
+   "n_ref_lines": 409
+  },
+  {
+   "ix": 12,
+   "iy": 18,
+   "split": "train",
+   "district": "黄埔区",
+   "n_signal": 78,
+   "n_ref_lines": 915
+  },
+  {
+   "ix": 12,
+   "iy": 19,
+   "split": "train",
+   "district": "黄埔区",
+   "n_signal": 52,
+   "n_ref_lines": 747
+  },
+  {
+   "ix": 12,
+   "iy": 20,
+   "split": "train",
+   "district": "从化区",
+   "n_signal": 11,
+   "n_ref_lines": 371
+  },
+  {
+   "ix": 12,
+   "iy": 21,
+   "split": "train",
+   "district": "从化区",
+   "n_signal": 15,
+   "n_ref_lines": 705
+  },
+  {
+   "ix": 12,
+   "iy": 22,
+   "split": "val",
+   "district": "从化区",
+   "n_signal": 3,
+   "n_ref_lines": 617
+  },
+  {
+   "ix": 12,
+   "iy": 23,
+   "split": "val",
+   "district": "从化区",
+   "n_signal": 6,
+   "n_ref_lines": 253
+  },
+  {
+   "ix": 12,
+   "iy": 24,
+   "split": "train",
+   "district": "从化区",
+   "n_signal": 36,
+   "n_ref_lines": 608
+  },
+  {
+   "ix": 12,
+   "iy": 25,
+   "split": "test",
+   "district": "从化区",
+   "n_signal": 1,
+   "n_ref_lines": 134
+  },
+  {
+   "ix": 12,
+   "iy": 26,
+   "split": "test",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 8
+  },
+  {
+   "ix": 13,
+   "iy": 2,
+   "split": "val",
+   "district": "南沙区",
+   "n_signal": 0,
+   "n_ref_lines": 60
+  },
+  {
+   "ix": 13,
+   "iy": 3,
+   "split": "train",
+   "district": "南沙区",
+   "n_signal": 6,
+   "n_ref_lines": 545
+  },
+  {
+   "ix": 13,
+   "iy": 4,
+   "split": "train",
+   "district": "南沙区",
+   "n_signal": 47,
+   "n_ref_lines": 998
+  },
+  {
+   "ix": 13,
+   "iy": 5,
+   "split": "train",
+   "district": "南沙区",
+   "n_signal": 39,
+   "n_ref_lines": 1209
+  },
+  {
+   "ix": 13,
+   "iy": 6,
+   "split": "train",
+   "district": "南沙区",
+   "n_signal": 56,
+   "n_ref_lines": 2395
+  },
+  {
+   "ix": 13,
+   "iy": 7,
+   "split": "train",
+   "district": "南沙区",
+   "n_signal": 22,
+   "n_ref_lines": 800
+  },
+  {
+   "ix": 13,
+   "iy": 8,
+   "split": "test",
+   "district": "番禺区",
+   "n_signal": 4,
+   "n_ref_lines": 231
+  },
+  {
+   "ix": 13,
+   "iy": 9,
+   "split": "test",
+   "district": "番禺区",
+   "n_signal": 0,
+   "n_ref_lines": 70
+  },
+  {
+   "ix": 13,
+   "iy": 10,
+   "split": "val",
+   "district": "番禺区",
+   "n_signal": 0,
+   "n_ref_lines": 3
+  },
+  {
+   "ix": 13,
+   "iy": 12,
+   "split": "test",
+   "district": "黄埔区",
+   "n_signal": 0,
+   "n_ref_lines": 48
+  },
+  {
+   "ix": 13,
+   "iy": 13,
+   "split": "train",
+   "district": "增城区",
+   "n_signal": 76,
+   "n_ref_lines": 1837
+  },
+  {
+   "ix": 13,
+   "iy": 14,
+   "split": "train",
+   "district": "增城区",
+   "n_signal": 59,
+   "n_ref_lines": 1016
+  },
+  {
+   "ix": 13,
+   "iy": 15,
+   "split": "train",
+   "district": "黄埔区",
+   "n_signal": 85,
+   "n_ref_lines": 1710
+  },
+  {
+   "ix": 13,
+   "iy": 16,
+   "split": "val",
+   "district": "黄埔区",
+   "n_signal": 10,
+   "n_ref_lines": 486
+  },
+  {
+   "ix": 13,
+   "iy": 17,
+   "split": "train",
+   "district": "黄埔区",
+   "n_signal": 90,
+   "n_ref_lines": 1090
+  },
+  {
+   "ix": 13,
+   "iy": 18,
+   "split": "train",
+   "district": "黄埔区",
+   "n_signal": 56,
+   "n_ref_lines": 618
+  },
+  {
+   "ix": 13,
+   "iy": 19,
+   "split": "val",
+   "district": "增城区",
+   "n_signal": 1,
+   "n_ref_lines": 209
+  },
+  {
+   "ix": 13,
+   "iy": 20,
+   "split": "train",
+   "district": "从化区",
+   "n_signal": 1,
+   "n_ref_lines": 100
+  },
+  {
+   "ix": 13,
+   "iy": 21,
+   "split": "val",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 79
+  },
+  {
+   "ix": 13,
+   "iy": 22,
+   "split": "train",
+   "district": "从化区",
+   "n_signal": 12,
+   "n_ref_lines": 784
+  },
+  {
+   "ix": 13,
+   "iy": 23,
+   "split": "train",
+   "district": "从化区",
+   "n_signal": 50,
+   "n_ref_lines": 1684
+  },
+  {
+   "ix": 13,
+   "iy": 24,
+   "split": "train",
+   "district": "从化区",
+   "n_signal": 6,
+   "n_ref_lines": 288
+  },
+  {
+   "ix": 13,
+   "iy": 25,
+   "split": "train",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 85
+  },
+  {
+   "ix": 13,
+   "iy": 26,
+   "split": "val",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 1
+  },
+  {
+   "ix": 14,
+   "iy": 1,
+   "split": "test",
+   "district": "南沙区",
+   "n_signal": 0,
+   "n_ref_lines": 2
+  },
+  {
+   "ix": 14,
+   "iy": 2,
+   "split": "val",
+   "district": "南沙区",
+   "n_signal": 7,
+   "n_ref_lines": 269
+  },
+  {
+   "ix": 14,
+   "iy": 3,
+   "split": "train",
+   "district": "南沙区",
+   "n_signal": 56,
+   "n_ref_lines": 947
+  },
+  {
+   "ix": 14,
+   "iy": 4,
+   "split": "val",
+   "district": "南沙区",
+   "n_signal": 33,
+   "n_ref_lines": 627
+  },
+  {
+   "ix": 14,
+   "iy": 5,
+   "split": "train",
+   "district": "南沙区",
+   "n_signal": 42,
+   "n_ref_lines": 679
+  },
+  {
+   "ix": 14,
+   "iy": 6,
+   "split": "test",
+   "district": "南沙区",
+   "n_signal": 33,
+   "n_ref_lines": 763
+  },
+  {
+   "ix": 14,
+   "iy": 7,
+   "split": "val",
+   "district": "南沙区",
+   "n_signal": 0,
+   "n_ref_lines": 8
+  },
+  {
+   "ix": 14,
+   "iy": 13,
+   "split": "train",
+   "district": "增城区",
+   "n_signal": 53,
+   "n_ref_lines": 1568
+  },
+  {
+   "ix": 14,
+   "iy": 14,
+   "split": "train",
+   "district": "增城区",
+   "n_signal": 117,
+   "n_ref_lines": 3049
+  },
+  {
+   "ix": 14,
+   "iy": 15,
+   "split": "train",
+   "district": "增城区",
+   "n_signal": 88,
+   "n_ref_lines": 1203
+  },
+  {
+   "ix": 14,
+   "iy": 16,
+   "split": "test",
+   "district": "增城区",
+   "n_signal": 6,
+   "n_ref_lines": 544
+  },
+  {
+   "ix": 14,
+   "iy": 17,
+   "split": "val",
+   "district": "增城区",
+   "n_signal": 49,
+   "n_ref_lines": 712
+  },
+  {
+   "ix": 14,
+   "iy": 18,
+   "split": "train",
+   "district": "增城区",
+   "n_signal": 7,
+   "n_ref_lines": 505
+  },
+  {
+   "ix": 14,
+   "iy": 19,
+   "split": "train",
+   "district": "增城区",
+   "n_signal": 4,
+   "n_ref_lines": 445
+  },
+  {
+   "ix": 14,
+   "iy": 20,
+   "split": "train",
+   "district": "增城区",
+   "n_signal": 0,
+   "n_ref_lines": 61
+  },
+  {
+   "ix": 14,
+   "iy": 21,
+   "split": "test",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 25
+  },
+  {
+   "ix": 14,
+   "iy": 22,
+   "split": "train",
+   "district": "从化区",
+   "n_signal": 6,
+   "n_ref_lines": 272
+  },
+  {
+   "ix": 14,
+   "iy": 23,
+   "split": "train",
+   "district": "从化区",
+   "n_signal": 28,
+   "n_ref_lines": 574
+  },
+  {
+   "ix": 14,
+   "iy": 24,
+   "split": "val",
+   "district": "从化区",
+   "n_signal": 5,
+   "n_ref_lines": 372
+  },
+  {
+   "ix": 14,
+   "iy": 25,
+   "split": "val",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 151
+  },
+  {
+   "ix": 14,
+   "iy": 26,
+   "split": "train",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 9
+  },
+  {
+   "ix": 14,
+   "iy": 27,
+   "split": "val",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 46
+  },
+  {
+   "ix": 14,
+   "iy": 28,
+   "split": "val",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 16
+  },
+  {
+   "ix": 15,
+   "iy": 0,
+   "split": "test",
+   "district": "南沙区",
+   "n_signal": 0,
+   "n_ref_lines": 36
+  },
+  {
+   "ix": 15,
+   "iy": 1,
+   "split": "train",
+   "district": "南沙区",
+   "n_signal": 12,
+   "n_ref_lines": 439
+  },
+  {
+   "ix": 15,
+   "iy": 2,
+   "split": "val",
+   "district": "南沙区",
+   "n_signal": 10,
+   "n_ref_lines": 314
+  },
+  {
+   "ix": 15,
+   "iy": 3,
+   "split": "train",
+   "district": "南沙区",
+   "n_signal": 17,
+   "n_ref_lines": 286
+  },
+  {
+   "ix": 15,
+   "iy": 4,
+   "split": "train",
+   "district": "南沙区",
+   "n_signal": 5,
+   "n_ref_lines": 203
+  },
+  {
+   "ix": 15,
+   "iy": 5,
+   "split": "val",
+   "district": "南沙区",
+   "n_signal": 0,
+   "n_ref_lines": 10
+  },
+  {
+   "ix": 15,
+   "iy": 13,
+   "split": "val",
+   "district": "增城区",
+   "n_signal": 7,
+   "n_ref_lines": 325
+  },
+  {
+   "ix": 15,
+   "iy": 14,
+   "split": "train",
+   "district": "增城区",
+   "n_signal": 23,
+   "n_ref_lines": 1288
+  },
+  {
+   "ix": 15,
+   "iy": 15,
+   "split": "test",
+   "district": "增城区",
+   "n_signal": 34,
+   "n_ref_lines": 833
+  },
+  {
+   "ix": 15,
+   "iy": 16,
+   "split": "train",
+   "district": "增城区",
+   "n_signal": 17,
+   "n_ref_lines": 397
+  },
+  {
+   "ix": 15,
+   "iy": 17,
+   "split": "train",
+   "district": "增城区",
+   "n_signal": 88,
+   "n_ref_lines": 754
+  },
+  {
+   "ix": 15,
+   "iy": 18,
+   "split": "train",
+   "district": "增城区",
+   "n_signal": 2,
+   "n_ref_lines": 165
+  },
+  {
+   "ix": 15,
+   "iy": 19,
+   "split": "val",
+   "district": "增城区",
+   "n_signal": 0,
+   "n_ref_lines": 131
+  },
+  {
+   "ix": 15,
+   "iy": 20,
+   "split": "train",
+   "district": "增城区",
+   "n_signal": 0,
+   "n_ref_lines": 62
+  },
+  {
+   "ix": 15,
+   "iy": 21,
+   "split": "train",
+   "district": "增城区",
+   "n_signal": 0,
+   "n_ref_lines": 31
+  },
+  {
+   "ix": 15,
+   "iy": 22,
+   "split": "train",
+   "district": "从化区",
+   "n_signal": 3,
+   "n_ref_lines": 116
+  },
+  {
+   "ix": 15,
+   "iy": 23,
+   "split": "val",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 81
+  },
+  {
+   "ix": 15,
+   "iy": 24,
+   "split": "test",
+   "district": "从化区",
+   "n_signal": 3,
+   "n_ref_lines": 257
+  },
+  {
+   "ix": 15,
+   "iy": 25,
+   "split": "test",
+   "district": "从化区",
+   "n_signal": 3,
+   "n_ref_lines": 442
+  },
+  {
+   "ix": 15,
+   "iy": 26,
+   "split": "test",
+   "district": "从化区",
+   "n_signal": 6,
+   "n_ref_lines": 259
+  },
+  {
+   "ix": 15,
+   "iy": 27,
+   "split": "train",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 143
+  },
+  {
+   "ix": 15,
+   "iy": 28,
+   "split": "test",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 54
+  },
+  {
+   "ix": 16,
+   "iy": 0,
+   "split": "test",
+   "district": "南沙区",
+   "n_signal": 0,
+   "n_ref_lines": 46
+  },
+  {
+   "ix": 16,
+   "iy": 1,
+   "split": "test",
+   "district": "南沙区",
+   "n_signal": 0,
+   "n_ref_lines": 65
+  },
+  {
+   "ix": 16,
+   "iy": 13,
+   "split": "train",
+   "district": "增城区",
+   "n_signal": 0,
+   "n_ref_lines": 1
+  },
+  {
+   "ix": 16,
+   "iy": 14,
+   "split": "val",
+   "district": "增城区",
+   "n_signal": 0,
+   "n_ref_lines": 403
+  },
+  {
+   "ix": 16,
+   "iy": 15,
+   "split": "val",
+   "district": "增城区",
+   "n_signal": 27,
+   "n_ref_lines": 781
+  },
+  {
+   "ix": 16,
+   "iy": 16,
+   "split": "train",
+   "district": "增城区",
+   "n_signal": 6,
+   "n_ref_lines": 260
+  },
+  {
+   "ix": 16,
+   "iy": 17,
+   "split": "val",
+   "district": "增城区",
+   "n_signal": 18,
+   "n_ref_lines": 598
+  },
+  {
+   "ix": 16,
+   "iy": 18,
+   "split": "test",
+   "district": "增城区",
+   "n_signal": 2,
+   "n_ref_lines": 161
+  },
+  {
+   "ix": 16,
+   "iy": 19,
+   "split": "val",
+   "district": "增城区",
+   "n_signal": 1,
+   "n_ref_lines": 189
+  },
+  {
+   "ix": 16,
+   "iy": 20,
+   "split": "test",
+   "district": "增城区",
+   "n_signal": 0,
+   "n_ref_lines": 35
+  },
+  {
+   "ix": 16,
+   "iy": 21,
+   "split": "test",
+   "district": "增城区",
+   "n_signal": 0,
+   "n_ref_lines": 133
+  },
+  {
+   "ix": 16,
+   "iy": 22,
+   "split": "train",
+   "district": "增城区",
+   "n_signal": 0,
+   "n_ref_lines": 100
+  },
+  {
+   "ix": 16,
+   "iy": 23,
+   "split": "train",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 112
+  },
+  {
+   "ix": 16,
+   "iy": 24,
+   "split": "val",
+   "district": "从化区",
+   "n_signal": 3,
+   "n_ref_lines": 277
+  },
+  {
+   "ix": 16,
+   "iy": 25,
+   "split": "train",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 96
+  },
+  {
+   "ix": 16,
+   "iy": 26,
+   "split": "train",
+   "district": "从化区",
+   "n_signal": 8,
+   "n_ref_lines": 231
+  },
+  {
+   "ix": 16,
+   "iy": 27,
+   "split": "train",
+   "district": "从化区",
+   "n_signal": 3,
+   "n_ref_lines": 340
+  },
+  {
+   "ix": 16,
+   "iy": 28,
+   "split": "test",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 56
+  },
+  {
+   "ix": 16,
+   "iy": 29,
+   "split": "train",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 44
+  },
+  {
+   "ix": 17,
+   "iy": 0,
+   "split": "val",
+   "district": "南沙区",
+   "n_signal": 0,
+   "n_ref_lines": 8
+  },
+  {
+   "ix": 17,
+   "iy": 1,
+   "split": "val",
+   "district": "南沙区",
+   "n_signal": 0,
+   "n_ref_lines": 14
+  },
+  {
+   "ix": 17,
+   "iy": 14,
+   "split": "train",
+   "district": "增城区",
+   "n_signal": 0,
+   "n_ref_lines": 224
+  },
+  {
+   "ix": 17,
+   "iy": 15,
+   "split": "val",
+   "district": "增城区",
+   "n_signal": 17,
+   "n_ref_lines": 661
+  },
+  {
+   "ix": 17,
+   "iy": 16,
+   "split": "val",
+   "district": "增城区",
+   "n_signal": 5,
+   "n_ref_lines": 650
+  },
+  {
+   "ix": 17,
+   "iy": 17,
+   "split": "train",
+   "district": "增城区",
+   "n_signal": 28,
+   "n_ref_lines": 452
+  },
+  {
+   "ix": 17,
+   "iy": 18,
+   "split": "test",
+   "district": "增城区",
+   "n_signal": 0,
+   "n_ref_lines": 29
+  },
+  {
+   "ix": 17,
+   "iy": 19,
+   "split": "train",
+   "district": "增城区",
+   "n_signal": 0,
+   "n_ref_lines": 116
+  },
+  {
+   "ix": 17,
+   "iy": 20,
+   "split": "val",
+   "district": "增城区",
+   "n_signal": 1,
+   "n_ref_lines": 257
+  },
+  {
+   "ix": 17,
+   "iy": 21,
+   "split": "test",
+   "district": "增城区",
+   "n_signal": 4,
+   "n_ref_lines": 327
+  },
+  {
+   "ix": 17,
+   "iy": 22,
+   "split": "test",
+   "district": "增城区",
+   "n_signal": 4,
+   "n_ref_lines": 384
+  },
+  {
+   "ix": 17,
+   "iy": 23,
+   "split": "train",
+   "district": "增城区",
+   "n_signal": 6,
+   "n_ref_lines": 278
+  },
+  {
+   "ix": 17,
+   "iy": 24,
+   "split": "val",
+   "district": "增城区",
+   "n_signal": 0,
+   "n_ref_lines": 46
+  },
+  {
+   "ix": 17,
+   "iy": 25,
+   "split": "val",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 192
+  },
+  {
+   "ix": 17,
+   "iy": 26,
+   "split": "val",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 86
+  },
+  {
+   "ix": 17,
+   "iy": 27,
+   "split": "test",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 194
+  },
+  {
+   "ix": 17,
+   "iy": 28,
+   "split": "train",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 106
+  },
+  {
+   "ix": 17,
+   "iy": 29,
+   "split": "test",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 75
+  },
+  {
+   "ix": 17,
+   "iy": 30,
+   "split": "test",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 6
+  },
+  {
+   "ix": 18,
+   "iy": 13,
+   "split": "train",
+   "district": "增城区",
+   "n_signal": 0,
+   "n_ref_lines": 3
+  },
+  {
+   "ix": 18,
+   "iy": 14,
+   "split": "val",
+   "district": "增城区",
+   "n_signal": 8,
+   "n_ref_lines": 566
+  },
+  {
+   "ix": 18,
+   "iy": 15,
+   "split": "test",
+   "district": "增城区",
+   "n_signal": 30,
+   "n_ref_lines": 734
+  },
+  {
+   "ix": 18,
+   "iy": 16,
+   "split": "train",
+   "district": "增城区",
+   "n_signal": 56,
+   "n_ref_lines": 687
+  },
+  {
+   "ix": 18,
+   "iy": 17,
+   "split": "train",
+   "district": "增城区",
+   "n_signal": 121,
+   "n_ref_lines": 2589
+  },
+  {
+   "ix": 18,
+   "iy": 18,
+   "split": "test",
+   "district": "增城区",
+   "n_signal": 17,
+   "n_ref_lines": 563
+  },
+  {
+   "ix": 18,
+   "iy": 19,
+   "split": "val",
+   "district": "增城区",
+   "n_signal": 3,
+   "n_ref_lines": 283
+  },
+  {
+   "ix": 18,
+   "iy": 20,
+   "split": "train",
+   "district": "增城区",
+   "n_signal": 1,
+   "n_ref_lines": 437
+  },
+  {
+   "ix": 18,
+   "iy": 21,
+   "split": "val",
+   "district": "增城区",
+   "n_signal": 0,
+   "n_ref_lines": 213
+  },
+  {
+   "ix": 18,
+   "iy": 22,
+   "split": "train",
+   "district": "增城区",
+   "n_signal": 0,
+   "n_ref_lines": 150
+  },
+  {
+   "ix": 18,
+   "iy": 23,
+   "split": "test",
+   "district": "增城区",
+   "n_signal": 0,
+   "n_ref_lines": 89
+  },
+  {
+   "ix": 18,
+   "iy": 24,
+   "split": "test",
+   "district": "增城区",
+   "n_signal": 0,
+   "n_ref_lines": 122
+  },
+  {
+   "ix": 18,
+   "iy": 25,
+   "split": "train",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 20
+  },
+  {
+   "ix": 18,
+   "iy": 26,
+   "split": "test",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 87
+  },
+  {
+   "ix": 18,
+   "iy": 27,
+   "split": "train",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 41
+  },
+  {
+   "ix": 18,
+   "iy": 28,
+   "split": "train",
+   "district": "从化区",
+   "n_signal": 1,
+   "n_ref_lines": 99
+  },
+  {
+   "ix": 18,
+   "iy": 29,
+   "split": "test",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 138
+  },
+  {
+   "ix": 18,
+   "iy": 30,
+   "split": "val",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 93
+  },
+  {
+   "ix": 18,
+   "iy": 31,
+   "split": "train",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 9
+  },
+  {
+   "ix": 19,
+   "iy": 13,
+   "split": "test",
+   "district": "增城区",
+   "n_signal": 0,
+   "n_ref_lines": 8
+  },
+  {
+   "ix": 19,
+   "iy": 14,
+   "split": "test",
+   "district": "增城区",
+   "n_signal": 1,
+   "n_ref_lines": 87
+  },
+  {
+   "ix": 19,
+   "iy": 15,
+   "split": "test",
+   "district": "增城区",
+   "n_signal": 15,
+   "n_ref_lines": 603
+  },
+  {
+   "ix": 19,
+   "iy": 16,
+   "split": "train",
+   "district": "增城区",
+   "n_signal": 11,
+   "n_ref_lines": 510
+  },
+  {
+   "ix": 19,
+   "iy": 17,
+   "split": "test",
+   "district": "增城区",
+   "n_signal": 25,
+   "n_ref_lines": 900
+  },
+  {
+   "ix": 19,
+   "iy": 18,
+   "split": "val",
+   "district": "增城区",
+   "n_signal": 6,
+   "n_ref_lines": 309
+  },
+  {
+   "ix": 19,
+   "iy": 19,
+   "split": "test",
+   "district": "增城区",
+   "n_signal": 6,
+   "n_ref_lines": 355
+  },
+  {
+   "ix": 19,
+   "iy": 20,
+   "split": "val",
+   "district": "增城区",
+   "n_signal": 4,
+   "n_ref_lines": 309
+  },
+  {
+   "ix": 19,
+   "iy": 21,
+   "split": "val",
+   "district": "增城区",
+   "n_signal": 0,
+   "n_ref_lines": 50
+  },
+  {
+   "ix": 19,
+   "iy": 22,
+   "split": "train",
+   "district": "增城区",
+   "n_signal": 0,
+   "n_ref_lines": 8
+  },
+  {
+   "ix": 19,
+   "iy": 23,
+   "split": "test",
+   "district": "增城区",
+   "n_signal": 0,
+   "n_ref_lines": 33
+  },
+  {
+   "ix": 19,
+   "iy": 24,
+   "split": "test",
+   "district": "增城区",
+   "n_signal": 0,
+   "n_ref_lines": 4
+  },
+  {
+   "ix": 19,
+   "iy": 26,
+   "split": "test",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 78
+  },
+  {
+   "ix": 19,
+   "iy": 27,
+   "split": "test",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 41
+  },
+  {
+   "ix": 19,
+   "iy": 28,
+   "split": "test",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 125
+  },
+  {
+   "ix": 19,
+   "iy": 29,
+   "split": "train",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 80
+  },
+  {
+   "ix": 19,
+   "iy": 30,
+   "split": "val",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 34
+  },
+  {
+   "ix": 19,
+   "iy": 31,
+   "split": "train",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 68
+  },
+  {
+   "ix": 20,
+   "iy": 14,
+   "split": "val",
+   "district": "增城区",
+   "n_signal": 0,
+   "n_ref_lines": 9
+  },
+  {
+   "ix": 20,
+   "iy": 15,
+   "split": "test",
+   "district": "增城区",
+   "n_signal": 0,
+   "n_ref_lines": 29
+  },
+  {
+   "ix": 20,
+   "iy": 16,
+   "split": "train",
+   "district": "增城区",
+   "n_signal": 2,
+   "n_ref_lines": 71
+  },
+  {
+   "ix": 20,
+   "iy": 19,
+   "split": "train",
+   "district": "增城区",
+   "n_signal": 0,
+   "n_ref_lines": 41
+  },
+  {
+   "ix": 20,
+   "iy": 20,
+   "split": "test",
+   "district": "增城区",
+   "n_signal": 2,
+   "n_ref_lines": 270
+  },
+  {
+   "ix": 20,
+   "iy": 21,
+   "split": "val",
+   "district": "增城区",
+   "n_signal": 0,
+   "n_ref_lines": 226
+  },
+  {
+   "ix": 20,
+   "iy": 22,
+   "split": "val",
+   "district": "增城区",
+   "n_signal": 0,
+   "n_ref_lines": 105
+  },
+  {
+   "ix": 20,
+   "iy": 28,
+   "split": "val",
+   "district": "从化区",
+   "n_signal": 3,
+   "n_ref_lines": 165
+  },
+  {
+   "ix": 20,
+   "iy": 29,
+   "split": "test",
+   "district": "从化区",
+   "n_signal": 1,
+   "n_ref_lines": 205
+  },
+  {
+   "ix": 20,
+   "iy": 30,
+   "split": "val",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 52
+  },
+  {
+   "ix": 20,
+   "iy": 31,
+   "split": "test",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 72
+  },
+  {
+   "ix": 21,
+   "iy": 18,
+   "split": "val",
+   "district": "增城区",
+   "n_signal": 0,
+   "n_ref_lines": 5
+  },
+  {
+   "ix": 21,
+   "iy": 19,
+   "split": "val",
+   "district": "增城区",
+   "n_signal": 0,
+   "n_ref_lines": 63
+  },
+  {
+   "ix": 21,
+   "iy": 20,
+   "split": "val",
+   "district": "增城区",
+   "n_signal": 0,
+   "n_ref_lines": 77
+  },
+  {
+   "ix": 21,
+   "iy": 21,
+   "split": "train",
+   "district": "增城区",
+   "n_signal": 0,
+   "n_ref_lines": 22
+  },
+  {
+   "ix": 21,
+   "iy": 22,
+   "split": "test",
+   "district": "增城区",
+   "n_signal": 0,
+   "n_ref_lines": 12
+  },
+  {
+   "ix": 21,
+   "iy": 28,
+   "split": "val",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 64
+  },
+  {
+   "ix": 21,
+   "iy": 29,
+   "split": "test",
+   "district": "从化区",
+   "n_signal": 4,
+   "n_ref_lines": 306
+  },
+  {
+   "ix": 21,
+   "iy": 30,
+   "split": "val",
+   "district": "从化区",
+   "n_signal": 1,
+   "n_ref_lines": 86
+  },
+  {
+   "ix": 21,
+   "iy": 31,
+   "split": "test",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 12
+  },
+  {
+   "ix": 22,
+   "iy": 18,
+   "split": "test",
+   "district": "增城区",
+   "n_signal": 0,
+   "n_ref_lines": 8
+  },
+  {
+   "ix": 22,
+   "iy": 19,
+   "split": "test",
+   "district": "增城区",
+   "n_signal": 0,
+   "n_ref_lines": 1
+  },
+  {
+   "ix": 22,
+   "iy": 28,
+   "split": "train",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 18
+  },
+  {
+   "ix": 22,
+   "iy": 29,
+   "split": "test",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 42
+  },
+  {
+   "ix": 22,
+   "iy": 30,
+   "split": "val",
+   "district": "从化区",
+   "n_signal": 2,
+   "n_ref_lines": 284
+  },
+  {
+   "ix": 22,
+   "iy": 31,
+   "split": "test",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 125
+  },
+  {
+   "ix": 23,
+   "iy": 30,
+   "split": "train",
+   "district": "从化区",
+   "n_signal": 0,
+   "n_ref_lines": 19
+  }
+ ],
+ "stats": {
+  "signals_by_split": {
+   "train": 5331,
+   "buffer": 1208,
+   "val": 878,
+   "unassigned": 1,
+   "test": 832,
+   "dev": 295
+  },
+  "blocks_by_split": {
+   "train": 145,
+   "val": 103,
+   "test": 96,
+   "dev": 4
+  },
+  "blocks_by_district": {
+   "花都区": {
+    "train": 22,
+    "val": 15,
+    "test": 14
+   },
+   "荔湾区": {
+    "val": 1,
+    "train": 2
+   },
+   "白云区": {
+    "train": 13,
+    "test": 7,
+    "val": 7
+   },
+   "番禺区": {
+    "val": 8,
+    "train": 11,
+    "test": 7
+   },
+   "海珠区": {
+    "val": 1,
+    "train": 1,
+    "test": 1
+   },
+   "越秀区": {
+    "train": 1
+   },
+   "从化区": {
+    "val": 27,
+    "train": 35,
+    "test": 26
+   },
+   "南沙区": {
+    "val": 13,
+    "test": 12,
+    "train": 17
+   },
+   "天河区": {
+    "train": 4,
+    "val": 1,
+    "test": 2
+   },
+   "黄埔区": {
+    "val": 6,
+    "train": 8,
+    "dev": 4,
+    "test": 3
+   },
+   "增城区": {
+    "train": 31,
+    "val": 24,
+    "test": 24
+   }
+  },
+  "cross_split_pairs_within_gap": 0,
+  "required_center_distance_m": 736.8,
+  "legacy_eval_points": {
+   "校准集.json": {
+    "train": 27,
+    "test": 2,
+    "buffer": 6,
+    "val": 8,
+    "dev": 1
+   },
+   "留出集.json": {
+    "train": 41,
+    "buffer": 8,
+    "test": 8,
+    "val": 8,
+    "dev": 1
+   }
+  }
+ }
+}

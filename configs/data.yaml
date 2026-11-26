@@ -1,0 +1,96 @@
+# 输入表征配置（docs/DESIGN.md §3）——纯数据加载 / 张量化参数
+crs_wgs84: "EPSG:4326"
+crs_metric: "EPSG:32649"      # UTM 49N 全市统一米制
+resolution_m: 0.20
+context_buffer_m: 16.0
+
+layers:
+  road: "南沙道路要素"
+  stripes: "斑马线白色条纹"
+  separation: "隔离设施路径"
+  other_area: "其他原生区域面"
+  bus_stop: "公交站点位"
+  signal: "信号灯点位"
+
+# 36 通道定义：name → 来源（code 列表 / 派生）与光栅化方式
+#   mode: narrow（窄线/窄漆面，选择性抗锯齿）| wide（1× 精确光栅化）| derived（派生场）
+channels:
+  - {name: roi_mask,               mode: wide,   source: roi}
+  - {name: road_surface,           mode: wide,   codes: [road_surface]}
+  - {name: road_boundary,          mode: narrow, source: road_boundary}
+  - {name: channelization_area,    mode: wide,   codes: [channelization_area]}
+  - {name: traffic_island,         mode: wide,   codes: [traffic_island]}
+  - {name: white_dashed,           mode: narrow, codes: [white_dashed_stroke, white_dashed]}
+  - {name: white_solid,            mode: narrow, codes: [white_solid_stroke]}
+  - {name: white_double_solid,     mode: narrow, codes: [white_double_solid]}
+  - {name: white_ldash_rsolid,     mode: narrow, codes: [white_left_dashed_right_solid]}
+  - {name: white_lsolid_rdash,     mode: narrow, codes: [white_left_solid_right_dashed]}
+  - {name: yellow_solid,           mode: narrow, codes: [yellow_solid_stroke]}
+  - {name: yellow_lsolid_rdash,    mode: narrow, codes: [yellow_left_solid_right_dashed]}
+  - {name: yellow_double_dashed,   mode: narrow, codes: [yellow_double_dashed]}
+  - {name: bus_lane_marking,       mode: narrow, codes: [bus_lane_marking]}
+  - {name: variable_lane_marking,  mode: narrow, codes: [variable_lane_marking]}
+  - {name: reversible_lane_marking, mode: narrow, codes: [reversible_lane_marking]}
+  - {name: udf_marking,            mode: derived}
+  - {name: marking_axis_cos2,      mode: derived}
+  - {name: marking_axis_sin2,      mode: derived}
+  - {name: crosswalk_area,         mode: wide,   codes: [crosswalk_area]}
+  - {name: crosswalk_stripe,       mode: narrow, source: stripes}
+  - {name: separation_path,        mode: narrow, source: separation}
+  - {name: parking,                mode: wide,   codes: [parking_space_surface, onstreet_parking_space, offstreet_parking_space, service_area_parking_marking], other_area_codes: [parking_background_surface]}
+  - {name: parking_internal_symbol, mode: wide,  codes: [parking_bidirectional_symbol, parking_oneway_symbol]}
+  - {name: nonmotor,               mode: mixed,  codes: [bicycle_lane_symbol], narrow_codes: [greenway_boundary]}
+  - {name: arrow_mask,             mode: wide,   source: arrows}
+  - {name: arrow_cos,              mode: derived}
+  - {name: arrow_sin,              mode: derived}
+  - {name: turn_L,                 mode: derived}
+  - {name: turn_S,                 mode: derived}
+  - {name: turn_R,                 mode: derived}
+  - {name: turn_U,                 mode: derived}
+  - {name: turn_FL,                mode: derived}
+  - {name: turn_FR,                mode: derived}
+  - {name: z_order_mean,           mode: derived}
+  - {name: z_order_span,           mode: derived}
+
+# 用于 UDF / 主轴场的“全部白/黄标线”通道
+marking_channels: [white_dashed, white_solid, white_double_solid, white_ldash_rsolid, white_lsolid_rdash,
+                   yellow_solid, yellow_lsolid_rdash, yellow_double_dashed, bus_lane_marking,
+                   variable_lane_marking, reversible_lane_marking]
+
+# 导向箭头分类代码 → 6 维转向多标签 [L, S, R, U, FL, FR]
+arrow_turns:
+  arrow_left: [L]
+  arrow_straight: [S]
+  arrow_right: [R]
+  arrow_uturn: [U]
+  arrow_front_left: [FL]
+  arrow_front_right: [FR]
+  arrow_left_right: [L, R]
+  arrow_left_uturn: [L, U]
+  arrow_straight_left: [S, L]
+  arrow_straight_right: [S, R]
+  arrow_straight_uturn: [S, U]
+  arrow_straight_left_right: [S, L, R]
+  arrow_straight_left_uturn: [S, L, U]
+  arrow_straight_front_right: [S, FR]
+  arrow_right_uturn: [R, U]
+  arrow_right_left_uturn: [R, L, U]
+  arrow_right_right_uturn: [R, U]
+  arrow_front_left_front_right_uturn: [FL, FR, U]
+  uturn_allowed_symbol: [U]
+# 原数据“旋转角度”为自正北顺时针方位角（M0 实测：箭头头部最宽断面 100% 位于 90°−rot 方向前端）
+arrow_heading_from_rotation: "bearing_cw_from_north"
+
+raster:
+  narrow_method: analytic      # analytic（解析精确面积覆盖率）| ss4（4×4 子像素超采样）——由 M0 基准定型
+  supersample: 4
+  udf_trunc_m: 2.0
+  udf_seed_coverage: 0.25      # 标线覆盖率 ≥ 该值的像素作为 UDF 种子
+  boundary_width_m: 0.20       # ∂road_surface 轮廓线渲染宽度
+  separation_width_m: 0.20     # 隔离设施路径渲染宽度
+  axis_sigma_px: 2.5           # 主轴场结构张量平滑尺度（M0 实测：P5 局部一致性 0.977→0.998）
+
+tokens:
+  max_tokens: 512
+  points_per_token: 8
+  chunk_max_len_m: 20.0        # 长折线按 ≤ 20 m 分段 Token 化

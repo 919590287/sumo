@@ -1,0 +1,11 @@
+# 防泄漏空间切分（docs/DESIGN.md §7.1-1，AGENTS.md 第 4 节）
+version: split_v1
+block_size_m: 5000          # 5 km × 5 km UTM 区块
+gap_m: 500                  # 不同集合样本窗口之间的最小地理隔离（隔离带宽度）
+window_half_extent_m: 118.4 # 最大单窗含缓冲半跨度 (204.8 + 32) / 2
+fractions: {train: 0.70, val: 0.15, test: 0.15}
+seed: 20261126
+district_source_layer: 道路参考线   # 质心经 11 区行政边界空间连接，区块按多数表决归属行政区
+density_source_layer: 信号灯点位     # 区块权重（规范平交口密度代理）
+dev_gpkg_bounds_buffer_m: 500       # 开创大道样本外包框外扩，覆盖区块整体划为 dev（val-dev）
+manifest_path: configs/splits/split_v1.json

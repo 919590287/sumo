@@ -1,0 +1,16 @@
+[project]
+name = "baidu2sumo"
+version = "0.0.1"
+description = "纯 ML/DL/RL 驱动的百度车道级矢量 → SUMO 路网转化（Phase 1 / M0 工程底座）"
+requires-python = ">=3.12"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+# exFAT 盘：禁止 pytest 缓存目录与 __pycache__（运行时请加 python -B）
+addopts = "-p no:cacheprovider -q"
+markers = [
+    "sumo: 需要 netconvert / sumo 可执行文件",
+    "mps: 需要 Apple MPS 设备",
+    "gpkg: 需要只读访问百度 GPKG 数据盘",
+]
