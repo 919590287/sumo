@@ -1,0 +1,16 @@
+# Python / IDE / Build
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# macOS exFAT sidecar & Finder files
+._*
+.DS_Store
+
+# Runtime outputs & logs
+runs/
+outputs/
+*.log
