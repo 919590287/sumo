@@ -53,6 +53,63 @@ def plan_tiles(roi_bounds, cfg: dict | None = None) -> list[Tile]:
     return tiles
 
 
+def plan_tiles_avoiding(roi_bounds, avoid: list, cfg: dict | None = None, search_m: float | None = None,
+                        step_m: float | None = None, min_core_m: float | None = None) -> list[Tile]:
+    """在 ``plan_tiles`` 的等分切线基础上，于 ±search_m 内平移各切线，使切线不穿过 ``avoid`` 中的区域
+    （由模型第一遍推理输出的节点区域给出），且每块净核心仍 ≤ 单窗上限。纯确定性分块几何（I/O），
+    不涉及任何道路几何裁决；找不到可行位置时保留等分切线。"""
+    cfg = cfg or load_config("tiling")
+    av = cfg.get("avoid_nodes", {})
+    search_m = float(av.get("search_m", 40.0) if search_m is None else search_m)
+    step_m = float(av.get("step_m", 1.0) if step_m is None else step_m)
+    min_core_m = float(av.get("min_core_m", 20.0) if min_core_m is None else min_core_m)
+    res, buf = cfg["resolution_m"], cfg["context_buffer_m"]
+    max_core = cfg["max_window_px"] * res - 2 * buf
+    xmin, ymin, xmax, ymax = map(float, roi_bounds)
+    base = plan_tiles(roi_bounds, cfg)
+    nx = len({t.ix for t in base})
+    ny = len({t.iy for t in base})
+
+    def cuts(lo, hi, n, axis):
+        c = [lo + (hi - lo) * k / n for k in range(1, n)]
+        out = []
+        prev = lo
+        for k, x in enumerate(c):
+            nxt_limit = hi if k == len(c) - 1 else None
+            cands = sorted(np.arange(-search_m, search_m + 1e-9, step_m), key=abs)
+            chosen = x
+            for d in cands:
+                xx = x + d
+                if xx - prev > max_core or xx - prev < min_core_m:
+                    continue
+                if nxt_limit is not None and (nxt_limit - xx > max_core or nxt_limit - xx < min_core_m):
+                    continue
+                if k < len(c) - 1 and c[k + 1] - xx > max_core:
+                    continue
+                line = LineString([(xx, ymin), (xx, ymax)] if axis == 0 else [(xmin, xx), (xmax, xx)])
+                if not any(a.intersects(line) for a in avoid):
+                    chosen = xx
+                    break
+            out.append(chosen)
+            prev = chosen
+        return [lo] + out + [hi]
+
+    xs = cuts(xmin, xmax, nx, 0)
+    ys = cuts(ymin, ymax, ny, 1)
+    tiles = []
+    mult = cfg["pad_multiple"]
+    for iy in range(ny):
+        for ix in range(nx):
+            core = (xs[ix], ys[iy], xs[ix + 1], ys[iy + 1])
+            win = (core[0] - buf, core[1] - buf, core[2] + buf, core[3] + buf)
+            origin = (math.floor(win[0]), math.floor(win[1]))
+            w_px = math.ceil((win[2] - origin[0]) / res)
+            h_px = math.ceil((win[3] - origin[1]) / res)
+            tiles.append(Tile(ix, iy, core, win, origin,
+                              (math.ceil(h_px / mult) * mult, math.ceil(w_px / mult) * mult)))
+    return tiles
+
+
 # ====================================================================== 裁切（真值/单测）
 def _port_embed(key: tuple, rng_noise: np.random.Generator | None, noise: float) -> np.ndarray:
     """确定性端口嵌入（以全局 edge 与切口序号为种子；仅用于构造真值与单测）。"""

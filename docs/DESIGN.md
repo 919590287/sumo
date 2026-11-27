@@ -361,10 +361,10 @@ $$R(G) = w_1 R_{\text{align}} + w_2 R_{\text{no\_intrusion}} + w_3 R_{\text{reca
 
 | 资源/约束项 | 规格与落地设计 |
 | --- | --- |
-| **计算硬件** | **本机（开发主线）**：Apple M4 Pro（12 核 CPU：8P+4E，24 GB 统一内存，PyTorch 2.8.0 MPS）。**训练服务器（重训练路线）**：Linux + NVIDIA RTX 4090（24 GB 显存）+ 256 GB 内存。服务器的 CPU 核数、磁盘空间、驱动 / CUDA 版本与网络条件以一键训练包首次运行的自检结果为准（见 6.2 节） |
+| **计算硬件** | **本机（开发主线）**：Apple M4 Pro（12 核 CPU：8P+4E，24 GB 统一内存，PyTorch 2.8.0 MPS）。**训练服务器（重训练路线）**：Linux + NVIDIA RTX 4090（24 GB 显存）+ 256 GB 内存，**NVIDIA 驱动与 CUDA 环境已就绪，训练包不安装、不升级、不改动系统级驱动与 CUDA**。服务器的 CPU 核数、磁盘空间、驱动 / CUDA 具体版本与网络条件以一键训练包首次运行的自检结果为准（见 6.2 节） |
 | **模型体量与算子适配** | 总参数量控制在 **25M–40M**（高保真轻 Stem + `ConvNeXt-Tiny`/`ResNet34` + `F_2(D_2=128)` + 轻量矢量编码器/6 层 MapTRv2 解耦层级解码器/GNN）。**解耦 Intra/Inter-Instance 注意力**将 `K_lane=32` 下的解码器自注意力开销压低 `>20×`，支撑 `1024×1024` 单窗推理与 `512–896` 训练。Deformable Cross-Attention 默认在**所有设备**上统一采用 `gather` 可微双线性采样（MPS 上替代尚不支持反向的 `grid_sample`，杜绝 CPU fallback；CUDA 上保持与 MPS 数值一致）。训练采用 `batch_size = 4~8` + 梯度累积 |
 | **性能实测门禁与时长预算** | **拒绝未经验证的吞吐臆测**。M0 已在本机实测三项基准：(1) 选择性抗锯齿光栅化（窄标线 `4×4` + 宽面 `1×`）vs 解析覆盖率光栅化的单图 CPU 耗时；(2) 单图前向/反向延迟与显存（含 `896×896` 训练与 `1024×1024` 推理）；(3) `6–8` 进程并行执行 `netconvert + 往返核验 + sumo` 的路口/秒吞吐。结果见 8.3 节：**Layer 1 按 MPS 吞吐计约需 `60–200 h`，超出原 `24–48 h` 预算**，因此 Layer 1 预训练改在训练服务器执行；最终 epoch 数与样本量在服务器首次运行的校准基准完成后定案并记入第 8 节。原初步预算仅作参考：Layer 1 合成预训练（3–5 万口，~20–30 epochs）约 `24–48 h`；Layer 2 真实物理自监督与渐进自训练约 `12–24 h`；Layer 3 每轮分层抽样 `500–1,000` 口 × `K = 16` 候选，执行 `4–8` 轮多对偏好迭代 DPO（及可选 GRPO）约 `8–16 h` |
-| **Python 环境** | **本机**：在 APFS 磁盘维护独立 conda 环境 `baidu2sumo`（PyTorch 2.8.0 MPS + GeoPandas/Shapely + OpenCV + SciPy + `sumolib`/`traci` 1.28.0），调用 `~/.microsim-platform/venv/bin/{netconvert,sumo}`（SUMO 1.28.0）。**服务器**：由一键训练包在包内自建隔离环境（见 6.2 节），PyTorch 主版本与本机保持一致（2.8.x，CUDA 构建），SUMO 使用同版本 `eclipse-sumo` Linux 轮子 |
+| **Python 环境** | **本机**：在 APFS 磁盘维护独立 conda 环境 `baidu2sumo`（PyTorch 2.8.0 MPS + GeoPandas/Shapely + OpenCV + SciPy + `sumolib`/`traci` 1.28.0），调用 `~/.microsim-platform/venv/bin/{netconvert,sumo}`（SUMO 1.28.0）。**服务器**：由一键训练包按包内依赖清单，用服务器已有的 conda 新建独立环境并联网安装（见 6.2 节），不预先打包环境；PyTorch 主版本与本机一致（2.8.x，cu128 构建），SUMO 使用同版本 `eclipse-sumo` Linux 轮子 |
 | **存储预算与 I/O 分离** | 原始 55.54 GB GPKG 严格只读。本机 APFS 缓存目录 `~/cache/baidu2sumo/` 总预算 **`~25–35 GB`**：合成轻量矢量与真值（5 万口 `< 1.5 GB`，在线光栅化）+ 真实广州切片与紧凑压缩 SDF 场（5 千口 `~12–15 GB`）+ checkpoints 与仿真日志（`~5–10 GB`）。exFAT 仓库内只保存源码、配置、轻量切分清单、指标报告与精选叠图。训练包与服务器训练产物都不放进仓库 |
 | **环境纪律** | 严禁使用 `/opt/homebrew/bin/python3`（其 `pyexpat` 损坏，SUMO XML 解析会报错）；严禁在 exFAT 仓库盘建 venv / conda 环境（不支持软链接）；运行 Python 默认加 `-B`，pytest 关闭缓存目录；macOS 在 exFAT 上新建或修改文件会产生 `._*` 附属文件，只清理自己本次新建/修改文件对应的 `._*` |
 
@@ -381,32 +381,34 @@ $$R(G) = w_1 R_{\text{align}} + w_2 R_{\text{no\_intrusion}} + w_3 R_{\text{reca
 4. **checkpoint 跨设备通用**：checkpoint 一律保存为 CPU 张量的 `state_dict` + 完整配置快照 + 训练包 `MANIFEST`。服务器训练的权重必须能在本机 MPS 上直接加载，用于推理与评测；导入时执行一次“同一输入、两设备前向输出一致性”检查。
 5. **单元测试分层**：设备无关测试在两端都必须通过；MPS 专属测试在 Linux 上自动跳过；CUDA 专属测试（含 CUDA 上采样等价性与 AMP 校准逻辑）在本机自动跳过，但在训练包自检中强制执行。
 
-### 6.2 一键训练包（服务器离线一键训练）规范
+### 6.2 一键训练包（服务器一键训练）规范
 
-M1 起，凡需在服务器执行的训练，均由本机生成一个**自包含的一键训练包**。上传服务器、解压后执行一条命令即可开始训练；训练进度可在服务器终端实时查看；训练成果可打包拷回本机。
+M1 起，凡需在服务器执行的训练，均由本机生成一个**一键训练包**。包内只放代码、数据、依赖清单和脚本，**不预先打包运行环境**。上传服务器、解压后执行一条命令：脚本用服务器已有的 conda 新建独立环境，按依赖清单安装后开始训练。训练进度可在服务器终端实时查看，训练成果可打包拷回本机。
 
-1. **构建（本机）**：`scripts/build_train_bundle.py --stage <layer1|…> --out <APFS 缓存目录>` 生成 `b2s_train_<stage>_<git短哈希>_<日期>.tar.gz`。构建前必须满足：本机单元测试全部通过、冒烟训练通过、工作区已提交（`MANIFEST` 记录 git 提交号；有未提交改动时拒绝构建，除非显式 `--allow-dirty` 并在 `MANIFEST` 中标记）。
+1. **构建（本机）**：`scripts/build_train_bundle.py --stage <layer1|…> --out <APFS 缓存目录>` 生成 `b2s_train_<stage>_<git短哈希>_<日期>.tar.gz`。
+   - 构建前必须满足：本机单元测试全部通过、冒烟训练通过、工作区已提交。`MANIFEST` 记录 git 提交号；有未提交改动时拒绝构建，除非显式 `--allow-dirty` 并在 `MANIFEST` 中标记。
+   - 依赖清单由构建脚本从本机 `baidu2sumo` 环境导出所需包的**固定版本**（剔除 macOS 专属包；PyTorch 换成对应的 CUDA 构建），保证两端主要依赖版本一致。
 2. **包内结构**：
    ```text
    b2s_train_<…>/
-   ├── run_train.sh        # 一键入口：自检 → 建环境 → 校准 → 启动训练（tmux 会话）
+   ├── run_train.sh        # 一键入口：自检 → 建 conda 环境并安装依赖 → 包内自测 → 校准 → 启动训练（tmux 会话）
    ├── watch.sh            # 实时查看训练进度（进入 tmux 会话，或 tail 日志）
    ├── pack_results.sh     # 打包训练成果，供拷回本机
-   ├── MANIFEST.json       # git 提交号、配置哈希、数据与轮子 sha256、构建时间、阶段与版本
-   ├── env/                # 自包含运行环境（离线安装）
-   │   ├── python/         # Linux x86_64 独立 CPython 3.12（python-build-standalone）
-   │   ├── wheels/         # 全部依赖的 manylinux x86_64 轮子（PyTorch 2.8.x CUDA 构建、torchvision、numpy、scipy、shapely、opencv-python-headless、pyyaml、pytest、tqdm/rich、eclipse-sumo / sumolib / traci 1.28.0 等）
-   │   └── requirements.lock  # 带哈希的锁定清单
+   ├── MANIFEST.json       # git 提交号、配置哈希、数据与依赖清单 sha256、构建时间、阶段与版本
+   ├── env/
+   │   ├── environment.yml       # conda 环境定义：python=3.12 + pip
+   │   ├── requirements-torch.txt # torch==2.8.x / torchvision==0.23.x，从 PyTorch 官方 CUDA 12.8（cu128）索引安装
+   │   └── requirements.txt       # 其余依赖（numpy、scipy、shapely、geopandas、pyogrio、opencv-python-headless、pyyaml、pytest、tqdm/rich、eclipse-sumo / sumolib / traci 1.28.0 等），版本固定
    ├── code/               # src/、configs/、scripts/、tests/（与 MANIFEST 中的提交号一致）
    ├── data/               # 该阶段训练所需的全部数据（如 Layer 1 合成矢量库与真值图、split 清单），路径在 configs 中重写为包内相对路径
    └── runs/               # 训练输出位置（初始为空）
    ```
-   - 环境完全离线可装：本机用 `pip download --platform manylinux…_x86_64 --python-version 3.12 --only-binary=:all:` 预取 Linux 轮子，服务器无需联网，也无需 root。服务器可联网时，`run_train.sh --online` 允许改为在线安装（仍按锁定清单）；
-   - 服务器只需预装 NVIDIA 驱动（CUDA 运行时随 PyTorch 轮子提供）。打包时选定的 CUDA 构建版本记入 `MANIFEST`；若服务器驱动版本过旧，自检会给出明确提示，打包脚本可用参数改选更早的 CUDA 构建重新打包；
-   - 预计包体约 `5–6 GB`（PyTorch CUDA 轮子及其 NVIDIA 运行库约 `3–4 GB`，Layer 1 数据 `< 1.5 GB`）。
+   - **服务器已具备 CUDA 环境（驱动 + CUDA），训练包不安装、不升级、不改动任何系统级驱动或 CUDA**。打包时按服务器已有的 CUDA 版本选择**与之兼容**的 PyTorch CUDA 构建（PyTorch 构建的 CUDA 版本不高于驱动支持的版本），选定版本记入 `MANIFEST`；服务器实际版本记录在第 8 节。PyTorch 官方 Linux 轮子会以 pip 依赖形式带上自身所需的 CUDA 运行库（如 cuDNN、cuBLAS），这些库只装进新建的 conda 环境供 PyTorch 使用，属于 PyTorch 的固有依赖，不是重装系统 CUDA；
+   - 安装依赖需要服务器能访问 conda 频道、PyPI 与 PyTorch 官方索引。三者都可通过参数或环境变量改用镜像（如 `--conda-channel`、`--pip-index-url`、`--torch-index-url`）；
+   - 包体约等于数据量加代码（Layer 1 约 `< 2 GB`）。
 3. **`run_train.sh` 流程**（幂等，可重复执行）：
-   1. **自检**：OS / 架构、`nvidia-smi`（GPU 型号、显存、驱动版本）、CPU 核数、内存、磁盘剩余空间、`tmux` 是否可用；逐项打印结果，不满足即停止并说明原因；
-   2. **建环境**：首次运行时在包目录内解压 Python 并离线安装轮子到 `./.venv`，之后复用；校验 `MANIFEST` 中的 sha256；
+   1. **自检**：OS / 架构、`nvidia-smi`（GPU 型号、显存、驱动版本及其支持的 CUDA 版本）、**GPU 空闲显存与占用进程**（空闲显存低于训练所需门槛时停止启动，列出占用进程，如 `ollama`，并提示用户自行释放；**训练包绝不结束或修改用户的其他进程与服务**；门槛在 `configs/` 中配置，校准后按实测峰值显存加余量设定）、系统 CUDA 版本（如 `nvcc --version`，仅读取，不修改）、依赖清单中 PyTorch CUDA 构建与服务器驱动的兼容性、`conda` 是否可用（不在 `PATH` 时探测常见安装位置）、CPU 核数、内存、磁盘剩余空间、`tmux` 是否可用；逐项打印结果，不满足即停止并说明原因；
+   2. **建 conda 环境并安装依赖**：用服务器已有的 conda 新建独立环境（默认名 `baidu2sumo`，可用 `--env-name` 覆盖），**不修改 `base` 及其他已有环境**；先按 `environment.yml` 建环境，再从 cu128 索引安装 PyTorch，最后安装 `requirements.txt`。装完核验：已装版本与清单一致、`torch.cuda.is_available()` 为真、能在 GPU 上完成一次前反向，并把 `conda list` / `pip freeze` 写入运行目录。再次运行时，若环境存在且依赖清单哈希与上次安装一致则直接复用；清单变化时在该环境内同步，`--recreate-env` 可强制重建。所有安装前先校验 `MANIFEST` 中的 sha256；
    3. **包内自测**：执行设备无关单测子集 + CUDA 专属单测（采样等价性、checkpoint 跨设备格式）；
    4. **校准**：CUDA 前反向基准、AMP 判定（6.1-3）、显存内最大 batch、DataLoader 进程数（依据 CPU 核数与在线光栅化吞吐）。结果写入 `runs/<run_id>/calibration.json`，训练配置据此确定，命令行可显式覆盖；
    5. **启动训练**：在名为 `b2s_<run_id>` 的 `tmux` 会话中启动，SSH 断开后训练不中断；无 `tmux` 时退化为 `nohup` + 日志文件。启动后打印查看进度、恢复训练与打包成果的命令；
@@ -464,7 +466,7 @@ M1 起，凡需在服务器执行的训练，均由本机生成一个**自包含
 | 里程碑 | 核心交付 | 可机检量化验收门槛 + 视觉门禁 |
 | --- | --- | --- |
 | **M0：工程底座、数据契约与性能基准** | 统一 APFS ML+SUMO 环境；`EPSG:32649` 任意 ROI 提取 + 选择性抗锯齿 / 解析覆盖率 36ch 在线光栅化 + 矢量 Token 化；完整图数据结构 $G$（`K_lane=32`）、增强约束图解码器、超大选区确定性分块端口拼接与 SUMO 序列化器（含显式 `<edge/node shape>`、`changeLeft="authority"`、岛侧辅助行人锚点边、`<connection from="..."/>` 禁补连、`--tls.set` 与编译后往返核验）；`≥ 500 m` 隔离带跨区切分清单；本机 M4 Pro 算子/光栅化/仿真吞吐实测基准报告 | 1. 单元测试 100% 通过（含超大选区分块端口拼接单测）；<br>2. 手工构造的 20+ 种复杂拓扑标准图（须覆盖展宽、单向渠化右转斑马线、中央岛二次过街、路段掉头、实线禁变道、零出边禁自动补连、公交道）`netconvert` 零错零告警编译率 **100%**、**往返连接集合 100% 完全一致**、**编译前后车道/内部连接几何 Hausdorff 漂移 `≤ 0.15 m`**，`sumo`（含 `--collision.check-junctions`）`collisions == 0`、`teleports == 0` 且 `changeLeft="authority"` 实测阻断民用车变道；<br>3. MPS 原生双线性采样数值误差 `< 1e-5`（相对 CPU `grid_sample`）且反向零 CPU fallback；完成 `4×4` 选择性抗锯齿 vs 解析覆盖率吞吐基准落盘并定型 |
-| **M1：合成引擎 + DL 基座（Layer 1）** | 5 类视觉可观测事件规范化分段协议（`K_lane=32`）+ 运动学内部轨迹生成器 + 3–5 万合成轻量矢量库（含左转待转区、路口引导虚线、公交/可变/潮汐车道、无标线支路/非机动车道/港湾式公交站负样本、跨块端口对比样本与任意 `roi_mask`）；双编码器融合 + MapTRv2 解耦层级解码器训练完成；**设备无关训练框架（`B2S_DEVICE`，MPS / CUDA 同一套代码）+ 一键训练包构建（`build_train_bundle.py`）/ 服务器端 `run_train.sh`、`watch.sh`、`pack_results.sh` + 本机成果导入（`import_results.py`）**（6.1–6.2 节）；本机完成合成数据生成、单测与 MPS 冒烟训练，Layer 1 正式预训练在 Linux 4090 服务器执行 | **合成留出测试集（含 `>172.8 m` 分块拼接验证）**：<br>• 车道中心线横向误差 `P50 ≤ 12 cm`、`P90 ≤ 25 cm`；<br>• 有效车道与人行横道 F1 `≥ 92%`，无标线支路与非机动车道误建率 `FPR ≤ 2%`；<br>• 导向箭头转向 F1 `≥ 92%`；<br>• **往返一致编译成功率 `≥ 95%`（`Hausdorff ≤ 0.20 m`）**，交付网稀疏单 OD 与测试台（`--tls.set`）全 OD 到达率 `≥ 92%`，`collisions == 0` 通过率 `≥ 95%`；<br>**真实验证集**：输出首批 Zero-shot 底图叠图与域差诊断报告；<br>**训练路线**：训练包在服务器上解压后一条命令完成自检、离线建环境、包内自测、校准并开始训练；终端可实时查看进度且 SSH 断开不中断；可断点续训；成果包拷回本机后通过 sha256 / `MANIFEST` 校验，并在 MPS 上通过跨设备前向一致性检查后完成上述评测 |
+| **M1：合成引擎 + DL 基座（Layer 1）** | 5 类视觉可观测事件规范化分段协议（`K_lane=32`）+ 运动学内部轨迹生成器 + 3–5 万合成轻量矢量库（含左转待转区、路口引导虚线、公交/可变/潮汐车道、无标线支路/非机动车道/港湾式公交站负样本、跨块端口对比样本与任意 `roi_mask`）；双编码器融合 + MapTRv2 解耦层级解码器训练完成；**设备无关训练框架（`B2S_DEVICE`，MPS / CUDA 同一套代码）+ 一键训练包构建（`build_train_bundle.py`）/ 服务器端 `run_train.sh`、`watch.sh`、`pack_results.sh` + 本机成果导入（`import_results.py`）**（6.1–6.2 节）；本机完成合成数据生成、单测与 MPS 冒烟训练，Layer 1 正式预训练在 Linux 4090 服务器执行 | **合成留出测试集（含 `>172.8 m` 分块拼接验证）**：<br>• 车道中心线横向误差 `P50 ≤ 12 cm`、`P90 ≤ 25 cm`；<br>• 有效车道与人行横道 F1 `≥ 92%`，无标线支路与非机动车道误建率 `FPR ≤ 2%`；<br>• 导向箭头转向 F1 `≥ 92%`；<br>• **往返一致编译成功率 `≥ 95%`（`Hausdorff ≤ 0.20 m`）**，交付网稀疏单 OD 与测试台（`--tls.set`）全 OD 到达率 `≥ 92%`，`collisions == 0` 通过率 `≥ 95%`；<br>**真实验证集**：输出首批 Zero-shot 底图叠图与域差诊断报告；<br>**训练路线**：训练包在服务器上解压后一条命令完成自检、用服务器 conda 新建环境并按依赖清单安装、包内自测、校准并开始训练；终端可实时查看进度且 SSH 断开不中断；可断点续训；成果包拷回本机后通过 sha256 / `MANIFEST` 校验，并在 MPS 上通过跨设备前向一致性检查后完成上述评测 |
 | **M2：真实物理自监督迁移（Layer 2）** | 3–6 千真实广州平交口零启发式自动采样与紧凑 SDF 场缓存；防退化完整 $\mathcal{L}_{\text{phys}}$（含反合并 $\mathcal{L}_{\text{no\_split}}$、防非机动渗漏的 $M_{\text{motor\_support}}$ 覆盖 $\mathcal{L}_{\text{cov}}$、双向箭头精确率/召回率 $\mathcal{L}_{\text{arrow}}$、路口内车道级配对代理损失 $\mathcal{L}_{\text{pair\_proxy}}$、轮廓-端点一致性与纵向实线门控禁入）；Sim+Real 混合训练 + 局部渐进自训练与 `train`-only 难例反哺 | **真实广州 `val` 留出集（含双轨 raw/decoded 统计）**：<br>• 车道中心线相对标线中轴横向偏移 `P50 ≤ 15 cm`、`P90 ≤ 35 cm`；<br>• 纵向压实线率 `≤ 3%`，安全岛/导流区侵入率 `≤ 1%`，**车道内部分隔线穿越率（反合并）`≤ 2%`**；<br>• **有效标线机动车道覆盖 F1 `≥ 88%`**，导向箭头覆盖率 `≥ 90%` / **转向 F1 `≥ 85%`**，斑马线白条 IoU `≥ 0.72`；<br>• 无标线支路/负语义区/非机动车道误建率 `FPR ≤ 5%`；<br>• **往返一致编译成功率 `≥ 92%`（`Hausdorff ≤ 0.20 m`）**；<br>• **Eval-Only 人工核验审计集初版基线**：逐臂车道数精确率 `≥ 82%`、转向矩阵 F1 `≥ 80%`；视觉终审无大面积偏移与明显支路/非机动残留 |
 | **M3：SUMO-in-the-Loop RL 精修（Layer 3）** | 奖励方差归因检验；结构化合法采样 + 多种子确定性仿真测试台（`--tls.set=<junction_core_ids>` + `--collision.check-junctions`）+ 每轮分层抽样与可分解近似似然多对偏好迭代 DPO（及可选结构化 GRPO / 方案 B 叠层） | **跨区留出真实 `test` 集（排除开创大道，3 固定种子均值）**：<br>• 中心线横向偏移 `P50 ≤ 12 cm`、`P90 ≤ 28 cm`，斑马线白条 IoU `≥ 0.78`；<br>• 压实线率 `≤ 1.5%`，安全岛/导流区侵入率 `≤ 0.5%`，**车道内部分隔线穿越率（反合并）`≤ 1.0%`**，**有效标线机动车道覆盖 F1 `≥ 92%`**，无标线支路/非机动车道 `FPR ≤ 3%`；<br>• 导向箭头覆盖率 `≥ 95%` / **转向 F1 `≥ 92%`**；死胡同/无源车道率 **raw `≤ 3%`、decoded `≤ 0.5%`**；<br>• **往返一致编译成功率 `≥ 98%`（`Hausdorff ≤ 0.20 m`）**，**交付版 `site.net.xml` 稀疏单 OD 到达率 `≥ 96%`**，测试台 `eval_sim.net.xml` 全 OD 到达率 `≥ 96%`、`collisions == 0` 通过率 `≥ 98%`、`teleports == 0` 通过率 `≥ 95%`；<br>• **Eval-Only 人工核验审计集（20–40 口）硬性门禁**：逐臂真实车道数精确率 `≥ 90%`、真实转向矩阵 F1 `≥ 90%`、真实无标线支路与非机动车道 `FPR ≤ 3%`、人行横道召回率 `≥ 92%`；<br>• 批量交付底图叠加与仿真轨迹视觉终审包（含审计对照表）供用户实测 |
 
@@ -472,7 +474,7 @@ M1 起，凡需在服务器执行的训练，均由本机生成一个**自包含
 
 ## 8. 实现进度与实测记录
 
-**里程碑状态**：M0 已完成（2026-11-26）；**M1 尚未开始**。2026-11-27 已确定 M1 起新增 Linux NVIDIA 训练路线与一键训练包（6.1–6.2 节），保留 Mac MPS 路线。
+**里程碑状态**：M0 已完成（2026-11-26）；**M1 尚未开始**。训练服务器（RTX 4090、256 GB 内存）的 CUDA 环境已由用户就绪，训练包不负责安装；**服务器实测（2026-11-27，`nvidia-smi`）**：RTX 4090（24564 MiB），驱动 `580.159.03`，驱动支持的最高 CUDA 版本 `13.0`，登录用户为 root，系统已有 conda（训练包用它新建独立环境安装依赖）。据此训练包选用 **PyTorch 2.8.x 的 CUDA 12.8 构建（cu128）**：与本机 PyTorch 主版本一致，兼容该驱动，并原生支持 4090（sm_89）。当时 `ollama` 常驻占用约 22.5 GB 显存，空闲仅约 2 GB，训练前须由用户释放（见 6.2-3 自检）。2026-11-27 已确定 M1 起新增 Linux NVIDIA 训练路线与一键训练包（6.1–6.2 节），保留 Mac MPS 路线。
 
 ### 8.1 M0 代码与配置映射（2026-11-26）
 

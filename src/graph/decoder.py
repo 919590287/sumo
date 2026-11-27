@@ -278,6 +278,8 @@ def decode_graph(t: GraphTensors, conn_pts: dict | Callable | None = None, cfg: 
                           is_stop_line_end=bool(t.lane_stop[l] >= 0.5), score=float(t.lane_score[l])))
     lane_map = {l.id: l for l in lanes}
     conns = []
+    if succ and callable(conn_pts) and getattr(conn_pts, "batched", False):
+        conn_pts = conn_pts(list(succ))               # 批量成对轨迹头：一次前向得到全部激活对的 K_conn
     for i, j in succ:
         if conn_pts is None:
             raise ValueError("缺少成对连接轨迹 K_conn（conn_pts）")

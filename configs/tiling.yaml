@@ -3,6 +3,10 @@ resolution_m: 0.20        # 0.20 m/px
 context_buffer_m: 16.0    # 选区外上下文缓冲
 max_window_px: 1024       # 单窗含缓冲上限 1024 px = 204.8 m
 pad_multiple: 32          # 前向 padding 至 32 倍数
+avoid_nodes:              # 分块切线避让模型预测节点区域的搜索参数（纯分块 I/O 参数）
+  search_m: 40.0          # 在等分切线 ±search_m 范围内平移搜索
+  step_m: 1.0             # 平移步长（米）
+  min_core_m: 20.0        # 单块净核心区最小跨度（米）
 port_match:
   gate_m: 4.0             # 端口全局坐标匹配门控半径（跨块同一断面端口距离上限）
   w_dist: 1.0             # 代价 = w_dist·d/gate_m + w_embed·(1 − cos(embed_a, embed_b))

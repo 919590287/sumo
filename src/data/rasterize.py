@@ -246,7 +246,7 @@ def rasterize(feat: RoiFeatures, method: str | None = None, cfg: dict | None = N
             out[ch[name]] = fill_center(pixel_polys([win.roi], win), H, W)
         elif spec.get("source") == "road_boundary":
             if len(road_surf):
-                u = shapely.union_all(shapely.clip_by_rect(road_surf, *_pad(win.bounds, 2.0)))
+                u = shapely.union_all(shapely.make_valid(shapely.clip_by_rect(shapely.make_valid(road_surf), *_pad(win.bounds, 2.0))))
                 boundary = shapely.buffer(u.boundary, rc["boundary_width_m"] / 2, cap_style="flat")
                 out[ch[name]] = narrow_coverage(pixel_polys([boundary], win), H, W, method, rc["supersample"])
         elif spec.get("source") == "stripes":

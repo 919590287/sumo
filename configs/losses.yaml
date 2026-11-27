@@ -1,0 +1,87 @@
+# 损失 / 匹配超参数（docs/DESIGN.md §5；AGENTS.md 第 3 节第 6 条：仅为损失与训练策略数学超参数）
+
+# ---------------------------------------------------------------- Layer 1：L_sim
+sim:
+  lambda_dense: 1.0
+  lambda_V: 1.0
+  lambda_L: 1.0
+  lambda_K: 1.0
+  lambda_C: 1.0
+  lambda_topo: 1.0
+  lambda_port: 0.2
+  aux_layer_weight: 0.5     # 中间解码层辅助损失权重（末层为 1）
+
+dense:
+  w_valid: 1.0
+  w_center: 1.0
+  w_sdf: 1.0
+  w_dir: 1.0
+  w_width: 0.5
+  w_anchor: 1.0
+  focal_alpha: 2.0          # CenterNet 式惩罚降低焦点损失
+  focal_beta: 4.0
+
+node:
+  w_score: 2.0
+  w_type: 1.0
+  w_pos: 1.0                # 米
+  w_poly: 0.5               # 米（循环起点取最小）
+  w_poly_end: 1.0           # L_poly_end：轮廓经过接入车道横断面角点
+  w_port: 1.0
+
+lane:
+  w_score: 2.0
+  w_pts: 1.0                # 米，32 点均值
+  w_dir: 1.0
+  w_width: 1.0
+  w_role: 0.5
+  w_perm: 0.5
+  w_lc: 0.5
+  w_stop: 0.5
+
+conn:
+  w_pts: 1.0                # 内部 6 个自由控制点 L1（米）
+
+crosswalk:
+  w_score: 2.0
+  w_end: 1.0
+  w_width: 0.5
+
+topo:
+  w_adj: 1.0
+  w_from: 1.0
+  w_to: 1.0
+  w_succ: 1.0
+  w_cross: 1.0
+  w_cross_node: 1.0
+  focal_gamma: 2.0
+  pos_alpha: 0.75
+
+score_focal: {alpha: 0.25, gamma: 2.0}
+
+port:
+  temperature: 0.1
+
+# Hungarian 匹配代价
+match:
+  lane: {cls: 2.0, pts: 1.0, width: 0.5}
+  node: {cls: 2.0, type: 1.0, pos: 1.0}
+  crosswalk: {cls: 2.0, end: 1.0}
+
+# ---------------------------------------------------------------- Layer 2 预留（M2 使用，见 §5 Layer 2）
+phys:
+  solid_gate: [0.05, 0.95]
+  no_split_band: 0.35
+  sigma_cov: 1.0
+  alpha_floor: 0.6
+  vehicle_width_m: 2.2
+  r_min_turn: 6.0
+  r_min_uturn: 4.5
+  m_forbid: 0.2
+  m_div: 0.15
+
+# 可微转向分类角核（评测指标的转向判定与 Layer 2 L_arrow 共用；度）
+turn_kernel:
+  centers: {L: 90.0, S: 0.0, R: -90.0, U: 180.0, FL: 45.0, FR: -45.0}
+  bandwidth: 20.0
+  confusion_tolerance: {L-FL: 0.5, R-FR: 0.5}

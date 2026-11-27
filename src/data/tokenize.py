@@ -152,7 +152,8 @@ def tokenize(feat: RoiFeatures, cfg: dict | None = None) -> VectorTokens:
             add("parking_symbol", np.repeat(c[None], P, 0))
     rs = road.geometry.values[road["分类代码"].values == "road_surface"]
     if len(rs):
-        bnd = clip(shapely.union_all(shapely.clip_by_rect(rs, xmin - 2, ymin - 2, xmax + 2, ymax + 2)).boundary)
+        bnd = clip(shapely.union_all(shapely.make_valid(shapely.clip_by_rect(shapely.make_valid(rs), xmin - 2, ymin - 2,
+                                                                              xmax + 2, ymax + 2))).boundary)
         for ln in _lines(bnd):
             for ch in _chunks(ln, max_len, P):
                 add("road_boundary", ch)

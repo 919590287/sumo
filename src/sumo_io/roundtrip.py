@@ -205,8 +205,9 @@ def verify_roundtrip(g: LaneGraph, ids: SumoIds, net_path: Path, tol: float | No
         want = {ids.edge[e] for e in cw.edges}
         hit = [x for x in net.crossings if set(x["edges"]) == want]
         if hit:
+            # 同一 edge 集合可能在不同节点各有一条斑马线（如走廊连接段两端），取几何最近者
             rep.crossing_hausdorff_max = max(rep.crossing_hausdorff_max,
-                                             hausdorff(cw.endpoints, hit[0]["shape"], step))
+                                             min(hausdorff(cw.endpoints, x["shape"], step) for x in hit))
         else:
             rep.failures.append(f"斑马线 {cw.id} 未按 edges={sorted(want)} 编译")
     if rep.lane_hausdorff_max > tol or rep.conn_hausdorff_max > tol or rep.crossing_hausdorff_max > tol:

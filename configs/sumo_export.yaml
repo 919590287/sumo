@@ -21,6 +21,10 @@ edge_defaults:
 # lane_change_flags == 0 时写出的禁变道属性（SUMO 1.28.0 实测："none"/"" 报错，"ignoring" 会被剥离）
 lane_change_forbidden: authority
 
+# <edge shape>（最左车道左缘辅助外廓）顶点最小间距：SUMO 1.28.0 实测极短 edge（如 ROI 截断残段）上
+# 6 cm 间距的 32 点外廓会被误报 "Found sharp turn"；按间距抽稀为纯语法适配，车道 <lane shape> 原样写出
+edge_shape_min_spacing_m: 1.0
+
 permission:
   general:    {disallow: pedestrian}
   bus_only:   {allow: bus}

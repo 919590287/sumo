@@ -29,6 +29,21 @@ def _shape(points) -> str:
     return " ".join(f"{_fmt(x)},{_fmt(y)}" for x, y in p[:, :2])
 
 
+def thin_shape(points, min_spacing: float) -> np.ndarray:
+    """edge 辅助外廓 shape 的顶点间距下限（保留首尾点）——纯编译器语法 / 精度适配：
+    SUMO 1.28.0 实测对极短 edge 上的密集顶点误报 "Found sharp turn"；车道 <lane shape> 不受影响。"""
+    p = np.asarray(points, dtype=np.float64)
+    if min_spacing <= 0 or len(p) <= 2:
+        return p
+    keep = [0]
+    for i in range(1, len(p) - 1):
+        if np.linalg.norm(p[i, :2] - p[keep[-1], :2]) >= min_spacing and \
+                np.linalg.norm(p[-1, :2] - p[i, :2]) >= min_spacing:
+            keep.append(i)
+    keep.append(len(p) - 1)
+    return p[keep]
+
+
 @dataclass
 class SumoIds:
     """G 实体 ↔ SUMO id 的确定性映射（往返核验使用）。"""
@@ -248,7 +263,7 @@ class SumoSerializer:
         for e in g.edges:
             off = ids.lane_offset[e.id]
             ll = lanes[e.lanes[-1]]
-            edge_shape = offset_polyline(ll.points, ll.width / 2)
+            edge_shape = thin_shape(offset_polyline(ll.points, ll.width / 2), c.get("edge_shape_min_spacing_m", 0.0))
             lines.append(
                 f'    <edge id="{ids.edge[e.id]}" from="{ids.node[e.from_node]}" to="{ids.node[e.to_node]}" '
                 f'numLanes="{len(e.lanes) + off}" speed="{d["speed"]}" priority="{d["priority"]}" '

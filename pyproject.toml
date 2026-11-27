@@ -12,5 +12,6 @@ addopts = "-p no:cacheprovider -q"
 markers = [
     "sumo: 需要 netconvert / sumo 可执行文件",
     "mps: 需要 Apple MPS 设备",
+    "cuda: 需要 NVIDIA CUDA 设备（本机自动跳过，训练包自检强制执行）",
     "gpkg: 需要只读访问百度 GPKG 数据盘",
 ]

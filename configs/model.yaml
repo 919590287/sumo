@@ -1,0 +1,47 @@
+# 双编码器融合 + Dense-to-Sparse 分层解码 + GNN 拓扑 / 成对连接轨迹头（docs/DESIGN.md §3.2、§4.2）
+d_model: 256              # D
+d2: 128                   # F_2 轻量投影维度 D_2
+n_heads: 8
+ffn: 1024
+dropout: 0.0
+in_channels: 36
+
+vector_encoder:
+  n_classes: 21           # src/data/tokenize.py TOKEN_CLASSES
+  point_hidden: 128
+  layers: 2               # 带相对位置偏置（RPE）的自注意力层数
+  rpe_hidden: 32
+  rpe_scale_m: 50.0
+
+fusion:
+  layers: 2               # 双向跨模态融合层数
+  n_points: 4             # 可变形注意力每层级采样点
+  v2b_levels: [F8, F16]   # Vector-to-BEV：在 F_8 / F_16 像素上做对矢量 Token 的交叉注意力（F_4' 经 F_8' 上采样增量更新）
+
+decoder:
+  layers: 6
+  n_points: 4
+  p_q: 64                 # 节点 Query
+  n_q: 128                # 路段车道层级 Query
+  m_q: 24                 # 人行横道 Query
+  k_lane: 32              # 每条车道 32 个点 Query（instance_q + point_q）
+  nms_kernel: {lane: 5, node: 7, cw: 7}
+  init_lane_len_m: 20.0
+  init_poly_radius_m: 10.0
+  init_cw_half_len_m: 8.0
+  pos_scale_m: 100.0      # 位置正弦编码的米制归一化尺度
+  step_scale_m: 2.0       # 每层几何增量的米制尺度
+
+topology:
+  layers: 2               # 异构图注意力层数
+  pair_hidden: 128
+  geo_scale_m: 30.0
+
+conn_head:
+  layers: 2
+  n_points: 4
+  k_conn: 8
+  max_pairs: 256
+
+dense_head:
+  hidden: 128

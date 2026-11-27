@@ -1,0 +1,136 @@
+# Layer 1 参数化合成引擎（docs/DESIGN.md §5 Layer 1）——训练数据生成参数
+# 本文件全部参数仅用于“生成合成真值与百度风格输入”，属于训练数据分布设计，
+# 绝不参与推理期裁决（AGENTS.md 第 3 节第 6 条 / 第 5 条“改进训练数据分布”）。
+
+version: synth_v1
+library_dir: synth_v1          # 位于 cache_dir 下；训练包内由 B2S_SYNTH_DIR 重写
+shard_size: 500
+seeds:                          # 不同用途的种子区间互不重叠
+  train: 0
+  val: 100000000
+  test: 200000000
+counts: {train: 30000, val: 1000, test: 1000}
+max_attempts_per_sample: 40
+
+# 全局放置：随机 UTM 偏移（广州全库覆盖范围内），保证 netOffset 与箭头方位换算真实
+utm_origin_range: {x: [700000, 800000], y: [2500000, 2650000]}
+
+# ---------------------------------------------------------------- 场景类型混合
+scene_mix: {junction: 0.80, corridor: 0.12, segment: 0.08}
+arms: {min: 3, max: 6, weights: [0.30, 0.42, 0.18, 0.10]}   # 3/4/5/6 岔
+arm_gap_deg: [30, 185]          # 相邻臂夹角范围（T 形路口直通两臂夹角 ≈ 180°）
+arm_template_prob: 0.7          # 3 / 4 岔按 T 形 / 十字模板 + 抖动采样（其余按 Dirichlet）
+arm_template_jitter_deg: 8.0
+arm_gap_concentration: 7.0      # 臂夹角 Dirichlet 集中度（越大越接近正交 / 等分；广州规范路口以近正交为主）
+lanes_in: {min: 1, max: 6, weights: [0.10, 0.26, 0.30, 0.20, 0.10, 0.04]}
+lanes_out: {min: 1, max: 6, weights: [0.12, 0.30, 0.32, 0.16, 0.07, 0.03]}
+oneway_prob: 0.06               # 某臂单行（仅进或仅出）
+lane_width: [2.1, 4.0]
+lane_width_mode: 3.3
+arm_length: [60.0, 130.0]
+bend_prob: 0.35
+bend_m: [-18.0, 18.0]
+lateral_prob: 0.12              # 错位口
+lateral_m: [-6.0, 6.0]
+stop_margin_m: [2.0, 9.0]       # 停止线距路口冲突区的随机余量
+
+median:                         # 对向分隔形式
+  types: {double_yellow: 0.38, single_yellow: 0.14, yellow_dashed: 0.04, island: 0.30, barrier: 0.14}
+  painted_width: [0.25, 0.70]
+  island_width: [1.5, 8.0]
+  barrier_width: [0.4, 1.2]
+
+# ---------------------------------------------------------------- 事件（5 类视觉可观测事件，§5 Layer 1-1）
+flare_prob: 0.30                # 进口展宽（split_merge）
+flare_side_left_prob: 0.35      #   展宽在左侧（左转专用道，吃进中央分隔岛）
+taper_out_prob: 0.15            # 出口缩减（split_merge）
+taper_len_m: [12.0, 30.0]
+solid_prob: 0.55                # 进口末段实线禁变道（road_continuation 切分）
+solid_len_m: [15.0, 45.0]
+attr_gap_m: 1.0                 # 属性切换断面两侧车道段的连接间隙
+bus_lane_prob: 0.15
+variable_lane_prob: 0.06
+reversible_lane_prob: 0.04
+midblock_uturn_prob: 0.10
+midblock_crosswalk_prob: 0.10
+uturn_opening_m: [10.0, 18.0]
+junction_uturn_prob: 0.25       # 路口内掉头
+slip_prob: 0.18                 # 独立渠化右转 + 转角安全岛
+waiting_area_prob: 0.35         # 左转待转区（双白虚线 + 前端横白实线 + 左转箭头）
+guide_line_prob: 0.30           # 路口内引导虚线
+crosswalk_prob: 0.80
+crosswalk_width: [3.0, 6.0]
+two_stage_min_island_m: 1.5
+movement_drop_prob: 0.10        # 禁止某转向（非全部）
+
+# 转向类别（合成真值箭头类别）：|偏转角| 区间 → 类别（度）
+turn_class_deg: {straight: 30.0, slight: 60.0, uturn: 155.0}
+
+# ---------------------------------------------------------------- 走廊 / 路段
+corridor_spacing_m: [140.0, 320.0]
+segment_length_m: [160.0, 260.0]
+
+# ---------------------------------------------------------------- 运动学内部轨迹生成器（C² 七次 Bézier，§5 Layer 1-1）
+kinematic:
+  r_min_turn: 6.0               # 普通转向最小转弯半径（与 configs/losses.yaml 一致）
+  r_min_uturn: 4.5
+  obstacle_clearance_m: 0.1     # 2.2 m 车体包络外缘对安全岛 / 导流区的净距（零入侵）
+  vehicle_half_width_m: 1.1     # 2.2 m 标准车体
+  parallel_gap_frac: 0.8        # 同 (进口, 出口) 并列转向中心线最小间隔 = 0.8 × 车道宽
+  samples: 64
+  max_iter: 150
+  w_bend: 1.0
+  w_len: 0.1
+  w_penalty: 2000.0
+
+# ---------------------------------------------------------------- 百度风格渲染（实测：开创大道样本）
+render:
+  white_width: [0.12, 0.20]
+  yellow_width: [0.15, 0.24]
+  double_yellow_gap: [0.10, 0.30]
+  dash_len_m: [4.0, 10.0]
+  dash_gap_m: [4.0, 9.0]
+  stop_line_width: [0.25, 0.45]
+  edge_line_prob: 0.5
+  arrow_len_m: [5.8, 7.2]
+  arrow_width_m: [1.0, 2.2]
+  arrow_first_m: [3.0, 12.0]
+  arrow_second_prob: 0.5
+  arrow_second_gap_m: [18.0, 35.0]
+  stripe_width_m: [0.40, 1.50]
+  stripe_gap_ratio: [0.8, 1.4]
+  channel_stripe_w: [0.42, 0.50]
+  channel_stripe_gap: [1.0, 2.0]
+  road_tile_m: [20.0, 80.0]     # road_surface 瓦片切分
+  waiting_len_frac: [0.25, 0.45]
+  bus_text_prob: 0.8
+
+# 负样本（全部渲染进输入，真值图与 M_valid 中置空）
+negatives:
+  side_road_prob: 0.45          # 无标线细小支路 / 园区出入口
+  side_road_width: [3.5, 7.0]
+  side_road_len: [15.0, 45.0]
+  parking_prob: 0.30            # 停车背景面 + 停车位 + 停车场内部通道符号
+  nonmotor_prob: 0.35           # 并入 road_surface、由白实线 / 隔离设施分隔的非机动车道
+  nonmotor_width: [2.0, 3.5]
+  bus_bay_prob: 0.25            # 港湾式公交站
+  max_per_scene: 5
+
+# ---------------------------------------------------------------- 在线域随机化（DataLoader，§5 Layer 1-2）
+domain_random:
+  wear_drop_prob: 0.04          # 漆面磨损缺损（逐碎片丢弃）
+  arrow_missing_prob: 0.05
+  jitter_m: 0.04                # 小幅几何抖动（逐要素平移）
+  jitter_rot_deg: 0.3
+  seam_prob: 0.7                # 长标线随机瓦片切缝
+  seam_tile_m: [8.0, 30.0]
+  seam_gap_m: [0.0, 0.05]
+
+# ---------------------------------------------------------------- 在线窗口与任意 roi_mask
+window:
+  px_choices: [512, 544, 576, 608, 640, 672, 704, 736, 768, 800, 832, 864, 896]
+  center_jitter_m: 30.0
+  roi_full_prob: 0.45           # 净 ROI = 窗口去缓冲的完整矩形
+  roi_min_area_frac: 0.35
+  pair_prob: 0.15               # 跨块端口对比样本（相邻两窗共享核心边界）
+  min_piece_m: 0.5              # 被 ROI 截断后残余车道段的最短长度（真值裁切约定）

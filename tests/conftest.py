@@ -26,11 +26,21 @@ def _has_mps() -> bool:
         return False
 
 
+def _has_cuda() -> bool:
+    try:
+        import torch
+        return torch.cuda.is_available()
+    except Exception:
+        return False
+
+
 def pytest_collection_modifyitems(config, items):
+    require_cuda = os.environ.get("B2S_DEVICE", "").lower() == "cuda"
     skip = {
         "sumo": (_has_sumo(), "缺少 netconvert / sumo"),
         "gpkg": (_has_gpkg(), "缺少开创大道 GPKG"),
         "mps": (_has_mps(), "缺少 MPS 设备"),
+        "cuda": (_has_cuda() or require_cuda, "缺少 CUDA 设备"),
     }
     for item in items:
         for mark, (ok, why) in skip.items():
